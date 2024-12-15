@@ -1,8 +1,12 @@
 from flask import Flask
 
+from src import routes
+
 
 def create_app() -> Flask:
     app = Flask(__name__)
+
+    routes.register(app)
 
     return app
 
