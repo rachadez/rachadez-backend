@@ -5,11 +5,11 @@ description = ""
 authors = ["Winicius Silva <winiciusab12@gmail.com>"]
 readme = "README.md"
 packages = [
-    { include = "src" }
+    { include = "app" }
 ]
 
 [tool.poetry.dependencies]
-python = "^3.13"
+python = "^3.10"
 fastapi = {extras = ["standard"], version = "^0.115.8"}
 pydantic-settings = "^2.7.1"
 

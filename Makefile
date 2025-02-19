@@ -9,8 +9,8 @@ install:
 
 .PHONY: run
 run:
-	fastapi run $(APP)
+	poetry ryn fastapi run $(APP)
 
 .PHONY: run-dev
 run-dev:
-	fastapi dev $(APP)
+	poetry run fastapi dev $(APP)
