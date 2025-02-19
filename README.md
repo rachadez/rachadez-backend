@@ -9,6 +9,11 @@ poetry install
 ```
 
 ## Running
+You will need a instance of database running in your machine. To do so, there is a `docker-compose` with Postgres declaration. To run the container, run:
+```bash
+make db-up
+```
+
 To run the application execute
 ```bash
 make run-dev
