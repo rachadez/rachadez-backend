@@ -1,5 +1,5 @@
 PACKAGE_PATH = ./src
-APP = $(PACKAGE_PATH)/__main__.py:create_app
+APP = app/main.py
 PYTHON3_BIN = $(shell which python3)
 
 help:
@@ -16,12 +16,12 @@ install:
 
 .PHONY: run
 run:
-	flask --app $(APP) run --reload
+	poetry run fastapi run $(APP)
 
 .PHONY: run-dev
 run-dev:
-	$(PYTHON3_BIN) src/
-
+	poetry run fastapi dev $(APP)
+  
 .PHONY: db-up
 db-up:
 	docker compose up -d

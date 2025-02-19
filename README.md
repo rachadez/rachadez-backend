@@ -19,8 +19,8 @@ To run the application execute
 make run-dev
 ```
 
-Now, check `localhost:5001/` in your web browser or via command line with
+Now, check `localhost:8000/v1` in your web browser or via command line with
 ```bash
 curl localhost:5001/
-<p>Hello World!</p>
+{ msg: Hello World! }
 ```
