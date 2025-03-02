@@ -12,6 +12,7 @@ packages = [
 python = "^3.10"
 fastapi = {extras = ["standard"], version = "^0.115.8"}
 pydantic-settings = "^2.7.1"
+sqlmodel = "^0.0.22"
 
 
 [build-system]
