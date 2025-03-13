@@ -17,7 +17,6 @@ def create_user(user: User, session: SessionDep) -> User | None:
     session.refresh(user)
     return user
 
-
 @router.get("/")
 def read_users(
     session: SessionDep, offset: int = 0, limit: Annotated[int, Query(le=100)] = 100
