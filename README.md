@@ -13,6 +13,28 @@ Once installed, run the command in project root dir
 poetry install
 ```
 
+## Project structure
+```
+├── __init__.py
+├── api -> Api main directory.
+│   ├── __init__.py
+│   ├── main.py
+│   ├── models -> All entities models.
+│   │   ├── __init__.py
+│   │   └── example.py
+│   ├── services -> Service package containing the methods logic.
+│   │   ├── __init__.py
+│   │   └── example.py
+│   └── routes -> Package with API routes. The files must sent request to service execute.
+│       ├── __init__.py
+│       └── example.py
+├── core -> Core files to the project such as db connection and configuration variables.
+│   ├── config.py
+│   └── db.py
+├── main.py
+└── tests
+```
+
 ## Running
 
 You will need a instance of database running in your machine. To do so, there
