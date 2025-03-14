@@ -1,13 +1,12 @@
-from typing import Annotated, Sequence
+from typing import Annotated
 import uuid
 from fastapi import APIRouter, Query, HTTPException
 from app.core.db import SessionDep
 from sqlmodel import select
-from api.services import users as user_service
+from app.api.services import users as user_service
 from app.api.models.user import (
     User,
     UserUpdate,
-    UsersPublic,
     UserCreate,
     UserPublic,
 )
@@ -29,10 +28,10 @@ def create_user(user_in: UserCreate, session: SessionDep) -> User | None:
     return user_db
 
 
-@router.get("/", response_model=UsersPublic)
+@router.get("/", response_model=list[UserPublic])
 def read_users(
     session: SessionDep, offset: int = 0, limit: Annotated[int, Query(le=100)] = 100
-) -> Sequence[User]:
+):
     """
     Retrieve users.
     """
@@ -53,19 +52,30 @@ def read_user(user_id: uuid.UUID, session: SessionDep) -> User:
 
 
 @router.patch("/{user_id}", response_model=UserPublic)
-def update_user(user_id: uuid.UUID, user: UserUpdate, session: SessionDep):
+def update_user(user_id: uuid.UUID, user_in: UserUpdate, session: SessionDep):
     """
     Update a user.
     """
-    user_db = session.get(User, user_id)
-    if not user_db:
-        raise HTTPException(status_code=404, detail="User not found")
-    user_data = user.model_dump(exclude_unset=True)
-    user_db.sqlmodel_update(user_data)
-    session.add(user_db)
-    session.commit()
-    session.refresh(user_db)
-    return user_db
+    # TODO: only admin users can update a user by ID
+    db_user = session.get(User, user_id)
+    if not db_user:
+        raise HTTPException(
+            status_code=404,
+            detail="The user with this id does not exist",
+        )
+    if user_in.email:
+        existing_user = user_service.get_user_by_email(
+            session=session, email=user_in.email
+        )
+        if existing_user and existing_user.id != user_id:
+            raise HTTPException(
+                status_code=409, detail="User with this email already exists"
+            )
+
+    db_user = user_service.update_user(
+        session=session, db_user=db_user, user_in=user_in
+    )
+    return db_user
 
 
 @router.delete("/{user_id}")
@@ -73,6 +83,7 @@ def delete_user(user_id: uuid.UUID, session: SessionDep):
     """
     Delete a user.
     """
+    # TODO: only admin users can delete a user by ID
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
