@@ -3,6 +3,7 @@ import uuid
 from fastapi import APIRouter, Query, HTTPException
 from app.core.db import SessionDep
 from sqlmodel import select
+from app.core import security
 from app.api.models.user import (
     User,
 )
@@ -12,6 +13,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 @router.post("/")
 def create_user(user: User, session: SessionDep) -> User | None:
+    user.hashed_password = security.hash_password(user.hashed_password)
     session.add(user)
     session.commit()
     session.refresh(user)

@@ -1,7 +1,6 @@
 from typing import Annotated
 from fastapi import Depends
 from sqlmodel import create_engine, SQLModel, Session
-
 from app.core.config import settings
 
 # We need to import models so the database can be created by SQLModel
