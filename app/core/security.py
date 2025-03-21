@@ -17,6 +17,8 @@ def create_acess_token(subject: str | Any, expires_delta: timedelta) -> str:
     encode_jwt = jwt.encode(to_encode, settings.SECRET_KEY)
     return encode_jwt
 
+ALGORITHM = "HS256"
+
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)

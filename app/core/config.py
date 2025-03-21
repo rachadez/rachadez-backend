@@ -1,4 +1,3 @@
-
 import secrets
 
 class Settings:
