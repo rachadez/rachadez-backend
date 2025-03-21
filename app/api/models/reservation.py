@@ -1,13 +1,15 @@
 from datetime import datetime
+from typing import Optional
 
 from sqlmodel import Field, SQLModel
 
 class Reservation(SQLModel):
-    id: str = Field(primary_key=True, max_length=2)
-    responsible_id: str = Field(foreign_key='responsible_id', max_length=9)
-    arena_id: str = Field(foreign_key='arena_id', max_length=2)
+    id: str = Field(primary_key=True)
+    responsible_id: Optional[str] = None 
+    arena_id: str 
     start_date: datetime
     end_date: datetime
+    made_on: Optional[datetime] = None
 
 
 class ReservationResponse(SQLModel):

@@ -1,4 +1,5 @@
 from typing import Any
+from datetime import datetime, timezone
 
 from sqlmodel import select, func
 
@@ -49,6 +50,26 @@ def get_reservation_by_id(session: SessionDep, reservation_id: str) -> Reservati
     reservation = session.exec(query).first()
 
     return reservation
+
+
+def get_reservations_by_availability(session: SessionDep, offset: int, limit: int) -> Any:
+    count_statement = select(func.count()).where(Reservation.responsible_id is None and Reservation.end_date > datetime.now(timezone.utc))
+    count = session.exec(count_statement).one()
+
+    get_statement = select(Reservation).where(Reservation.responsible_id is None and Reservation.end_date > datetime.now(timezone.utc)).offset(offset).limit(limit)
+    reservations = session.exec(get_statement).all()
+
+    return ReservationResponse(data=list(reservations), count=count)
+
+
+def get_reservations_by_marked(session:SessionDep, offset: int, limit: int) -> Any:
+    count_statement = select(func.count()).where(Reservation.responsible_id is not None and Reservation.end_date > datetime.now(timezone.utc))
+    count = session.exec(count_statement).one()
+
+    get_statement = select(Reservation).where(Reservation.responsible_id is not None and Reservation.end_date > datetime.now(timezone.utc)).offset(offset).limit(limit)
+    reservations = session.exec(get_statement).all()
+
+    return ReservationResponse(data=list(reservations), count=count)
 
 
 def delete_reservation(session: SessionDep, reservation: Reservation) -> Reservation | None:
