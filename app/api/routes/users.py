@@ -1,7 +1,8 @@
-from typing import Annotated
+from typing import Annotated, Any
 import uuid
-from fastapi import APIRouter, Query, HTTPException
-from app.core.db import SessionDep
+from fastapi import APIRouter, Query, HTTPException, Depends
+
+# from app.core.db import SessionDep
 from sqlmodel import select
 from app.api.services import users as user_service
 from app.api.models.user import (
@@ -9,6 +10,12 @@ from app.api.models.user import (
     UserUpdate,
     UserCreate,
     UserPublic,
+)
+
+from app.api.deps import (
+    CurrentUser,
+    SessionDep,
+    get_current_active_superuser,
 )
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -28,26 +35,43 @@ def create_user(user_in: UserCreate, session: SessionDep) -> User | None:
     return user_db
 
 
-@router.get("/", response_model=list[UserPublic])
+@router.get(
+    "/",
+    dependencies=[Depends(get_current_active_superuser)],
+    response_model=list[UserPublic],
+)
 def read_users(
     session: SessionDep, offset: int = 0, limit: Annotated[int, Query(le=100)] = 100
 ):
     """
     Retrieve users.
     """
-    users = session.exec(select(User).offset(offset).limit(limit)).all()
+    users = user_service.read_users(session=session, offset=offset, limit=limit)
     return users
 
 
 @router.get("/{user_id}", response_model=UserPublic)
-def read_user(user_id: uuid.UUID, session: SessionDep) -> User:
+def read_user_by_id(
+    user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
+) -> Any:
     """
     Retrieve a user by id.
     """
     # TODO: only admin users can get a user by ID
+
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+
+    # Return my own user data
+    if user == current_user:
+        return user
+
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=403,
+            detail="The user doesn't have enough privileges",
+        )
     return user
 
 

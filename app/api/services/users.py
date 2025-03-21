@@ -16,6 +16,14 @@ def create_user(*, session: Session, user_create: UserCreate) -> User:
     return db_obj
 
 
+def read_users(session: Session, offset: int, limit: int):
+    """
+    Retrieve users.
+    """
+    users = session.exec(select(User).offset(offset).limit(limit)).all()
+    return users
+
+
 def update_user(*, session: Session, db_user: User, user_in: UserUpdate) -> Any:
     user_data = user_in.model_dump(exclude_unset=True)
     extra_data = {}
