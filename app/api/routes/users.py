@@ -1,9 +1,10 @@
-from typing import Annotated, Any
+from typing import Annotated, Any, Sequence
 import uuid
 from fastapi import APIRouter, Query, HTTPException, Depends
 
 # from app.core.db import SessionDep
 from sqlmodel import select
+from app.core import security
 from app.api.services import users as user_service
 from app.api.models.user import (
     User,
