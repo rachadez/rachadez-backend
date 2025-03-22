@@ -15,3 +15,8 @@ class Reservation(SQLModel):
 class ReservationResponse(SQLModel):
     data: list[Reservation]
     count: int
+
+
+class ReservationUsers(SQLModel):
+    user_id: str
+    reservation_id: str

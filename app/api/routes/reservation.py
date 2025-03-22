@@ -1,5 +1,6 @@
 from typing import Any
 from datetime import datetime, timezone
+from dateutil.relativedelta import relativedelta
 
 from fastapi import APIRouter, HTTPException
 
@@ -47,9 +48,37 @@ def make_reservation(session: SessionDep, responsible_id: str, reservation_id: s
         made_on = datetime.now(timezone.utc)
         )
     
+    last_reservation_user = reservation_repository.get_last_reservation_from_user(session, responsible_id)
+
+    if last_reservation_user and (last_reservation_user.end_date + relativedelta(months=1)).replace(day=1) > datetime.now(timezone.utc):
+        raise HTTPException(
+            status_code=404,
+            detail="The user has already participated in a reservation this month"
+        )
+    
     reservation_repository.update_reservation(session, reservation, new_reservation)
+    reservation_repository.add_user_to_reservation(session, responsible_id, reservation_id)
 
     return new_reservation
+
+
+@router.post("/")
+def add_user_to_reservation(session: SessionDep, user_id: str, reservation_id: str):
+    last_reservation_user = reservation_repository.get_last_reservation_from_user(session, user_id)
+
+    if last_reservation_user and (last_reservation_user.end_date + relativedelta(months=1)).replace(day=1) > datetime.now(timezone.utc):
+        raise HTTPException(
+            status_code=404,
+            detail="The user has already participated in a reservation this month"
+        )
+    
+    if not reservation_repository.get_reservation_by_id(reservation_id):
+        raise HTTPException(
+            status_code=404,
+            detail="There is no reservation with ID %s" % reservation_id
+        )
+
+    return reservation_repository.add_user_to_reservation(session, user_id, reservation_id)
 
 
 @router.get("/")
@@ -60,6 +89,11 @@ def get_reservations(session: SessionDep, offset=0, limit=100) -> Any:
 @router.get("/")
 def get_reservations_by_availability(session: SessionDep, offset=0, limit=100) -> Any:
     return reservation_repository.get_reservations_by_availability(session, offset, limit)
+
+
+@router.get("/")
+def get_reservations_by_availability_arena_type(session: SessionDep, type_sport: str, offset=0, limit=100) -> Any:
+    return reservation_repository.get_reservations_by_availability_arena_type(session, type_sport, offset, limit)
 
 
 @router.get("/{id}")
@@ -127,3 +161,4 @@ def delete_reservation(session: SessionDep, reservation_id: str) -> Reservation 
     deleted_reservation = reservation_repository.delete_reservation(session, reservation)
 
     return deleted_reservation
+
