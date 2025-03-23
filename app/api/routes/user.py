@@ -20,7 +20,9 @@ from app.api.deps import (
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.post("/", response_model=UserPublic)
+@router.post(
+    "/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic
+)
 def create_user(user_in: UserCreate, session: SessionDep) -> User | None:
     """
     Create a new user.
