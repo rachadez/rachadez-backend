@@ -90,3 +90,15 @@ def delete_user(user_id: uuid.UUID, session: SessionDep):
     session.delete(user)
     session.commit()
     return {"ok": True}
+
+# Block a user
+# TODO: only admin can blocked
+@router.patch("/{user_id}/block", response_model=dict)
+def block_user(user_id: uuid.UUID, session: SessionDep):
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.is_active = False
+    session.add(user)
+    session.commit() 
+    return {"ok":True}
