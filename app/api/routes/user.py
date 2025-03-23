@@ -8,6 +8,7 @@ from app.api.models.user import (
     UserUpdate,
     UserCreate,
     UserPublic,
+    UserRegister,
 )
 
 from app.api.deps import (
@@ -31,6 +32,22 @@ def create_user(user_in: UserCreate, session: SessionDep) -> User | None:
         )
     user_db = user_service.create_user(session=session, user_create=user_in)
     return user_db
+
+
+@router.post("/signup", response_model=UserPublic)
+def register_user(session: SessionDep, user_in: UserRegister) -> Any:
+    """
+    Create new user without the need to be logged in.
+    """
+    user = user_service.get_user_by_email(session=session, email=user_in.email)
+    if user:
+        raise HTTPException(
+            status_code=400,
+            detail="The user with this email already exists in the system",
+        )
+    user_create = UserCreate.model_validate(user_in)
+    user = user_service.create_user(session=session, user_create=user_create)
+    return user
 
 
 @router.get(
