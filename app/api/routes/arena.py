@@ -55,7 +55,7 @@ def update_arena(session: SessionDep, arena_id: int,
     return updated_arena
 
 
-@router.delete("/")
+@router.delete("/{arena_id}")
 def delete_arena(session: SessionDep, arena_id: int) -> None:
     arena = arena_service.get_arena_by_id(session, arena_id)
 
@@ -65,5 +65,4 @@ def delete_arena(session: SessionDep, arena_id: int) -> None:
             detail="An arena with id %s not exists" % arena_id)
 
     arena_service.delete(session, arena)
-
     return None
