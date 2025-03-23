@@ -27,6 +27,12 @@ def create_user(user_in: UserCreate, session: SessionDep) -> User | None:
     user_db = user_service.create_user(session=session, user_create=user_in)
     return user_db
 
+#Get users that are blocked
+#TODO: only admin can list blocked users
+@router.get("/blocked_users", response_model=list[UserPublic])
+def get_blocked_users(session: SessionDep):
+    users = session.exec(select(User).where(User.is_active == False)).all()
+    return users
 
 @router.get("/", response_model=list[UserPublic])
 def read_users(
@@ -93,7 +99,7 @@ def delete_user(user_id: uuid.UUID, session: SessionDep):
 
 # Block a user
 # TODO: only admin can blocked
-@router.patch("/{user_id}/block", response_model=dict)
+@router.patch("/block/{user_id}", response_model=dict)
 def block_user(user_id: uuid.UUID, session: SessionDep):
     user = session.get(User, user_id)
     if not user:
