@@ -28,6 +28,10 @@ def db_session(setup_db):
 
 @pytest.fixture()
 def client(db_session):
+    """
+    This function returns a mock client for the API. We override the database
+    session for a mocked one, avoiding using the production session.
+    """
     def override_db():
         yield db_session
 
