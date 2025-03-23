@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from app.core.config import settings
 from app.core import security
-from app.api.repository import user as user_repository
+from app.api.services import login as login_service
 from app.api.models.user import UserPublic
 
 router = APIRouter(tags=["login"])
@@ -17,7 +17,7 @@ router = APIRouter(tags=["login"])
 def login(
     session: SessionDep, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ) -> Token:
-    user = user_repository.authenticate(
+    user = login_service.authenticate(
         session=session, email=form_data.username, password=form_data.password
     )
 
