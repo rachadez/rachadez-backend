@@ -55,6 +55,15 @@ def update_arena(session: SessionDep, arena_id: int,
     return updated_arena
 
 
-@router.post("/")
-def delete_arena():
-    pass
+@router.delete("/{arena_id}")
+def delete_arena(session: SessionDep, arena_id: int) -> None:
+    arena = arena_repository.get_arena_by_id(session, arena_id)
+
+    if not arena:
+        raise HTTPException(
+            status_code=404,
+            detail="An arena with id %s not exists" % arena_id)
+
+    arena_repository.delete(session, arena)
+
+    return None
