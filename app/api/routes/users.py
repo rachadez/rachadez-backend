@@ -108,3 +108,13 @@ def block_user(user_id: uuid.UUID, session: SessionDep):
     session.add(user)
     session.commit() 
     return {"ok":True}
+
+@router.patch("/unblock/{user_id}", response_model=dict)
+def unblock_user(user_id: uuid.UUID, session: SessionDep):
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.is_active = True
+    session.add(user)
+    session.commit()
+    return {"ok":True}
