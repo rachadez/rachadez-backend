@@ -74,7 +74,6 @@ def read_user_by_id(
     """
     Retrieve a user by id.
     """
-    # TODO: only admin users can get a user by ID
 
     user = session.get(User, user_id)
     if not user:
@@ -119,12 +118,11 @@ def update_user(user_id: uuid.UUID, user_in: UserUpdate, session: SessionDep):
     return db_user
 
 
-@router.delete("/{user_id}")
+@router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)])
 def delete_user(user_id: uuid.UUID, session: SessionDep):
     """
     Delete a user.
     """
-    # TODO: only admin users can delete a user by ID
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
