@@ -1,6 +1,7 @@
 from typing import Annotated, Any
 import uuid
 from fastapi import APIRouter, Query, HTTPException, Depends
+from sqlmodel import select
 
 from app.api.services import user as user_service
 from app.api.models.user import (
@@ -35,12 +36,6 @@ def create_user(user_in: UserCreate, session: SessionDep) -> User | None:
     user_db = user_service.create_user(session=session, user_create=user_in)
     return user_db
 
-#Get users that are blocked
-#TODO: only admin can list blocked users
-@router.get("/blocked_users", response_model=list[UserPublic])
-def get_blocked_users(session: SessionDep):
-    users = session.exec(select(User).where(User.is_active == False)).all()
-    return users
 
 @router.post("/signup", response_model=UserPublic)
 def register_user(session: SessionDep, user_in: UserRegister) -> Any:
@@ -136,6 +131,15 @@ def delete_user(user_id: uuid.UUID, session: SessionDep):
     session.commit()
     return {"ok": True}
 
+
+# Get users that are blocked
+# TODO: only admin can list blocked users
+@router.get("/block", response_model=list[UserPublic])
+def get_blocked_users(session: SessionDep):
+    users = session.exec(select(User).where(not User.is_active)).all()
+    return users
+
+
 # Block a user
 # TODO: only admin can blocked
 @router.patch("/block/{user_id}", response_model=dict)
@@ -145,10 +149,11 @@ def block_user(user_id: uuid.UUID, session: SessionDep):
         raise HTTPException(status_code=404, detail="User not found")
     user.is_active = False
     session.add(user)
-    session.commit() 
-    return {"ok":True}
+    session.commit()
+    return {"ok": True}
 
-@router.patch("/unblock/{user_id}", response_model=dict)
+
+@router.patch("/unblock/{user_id}", response_model=UserPublic)
 def unblock_user(user_id: uuid.UUID, session: SessionDep):
     user = session.get(User, user_id)
     if not user:
@@ -156,4 +161,5 @@ def unblock_user(user_id: uuid.UUID, session: SessionDep):
     user.is_active = True
     session.add(user)
     session.commit()
-    return {"ok":True}
+    return user
+
