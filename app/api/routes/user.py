@@ -136,6 +136,9 @@ def delete_user(user_id: uuid.UUID, session: SessionDep):
 # TODO: only admin can list blocked users
 @router.get("/block", response_model=list[UserPublic])
 def get_blocked_users(session: SessionDep):
+    """
+    Retrieve blocked users.
+    """
     users = session.exec(select(User).where(not User.is_active)).all()
     return users
 
@@ -144,6 +147,9 @@ def get_blocked_users(session: SessionDep):
 # TODO: only admin can blocked
 @router.patch("/block/{user_id}", response_model=dict)
 def block_user(user_id: uuid.UUID, session: SessionDep):
+    """
+    Block a user by id.
+    """
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -155,6 +161,9 @@ def block_user(user_id: uuid.UUID, session: SessionDep):
 
 @router.patch("/unblock/{user_id}", response_model=UserPublic)
 def unblock_user(user_id: uuid.UUID, session: SessionDep):
+    """
+    Unblock a user by id.
+    """
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
