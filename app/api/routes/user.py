@@ -92,12 +92,15 @@ def read_user_by_id(
     return user
 
 
-@router.patch("/{user_id}", response_model=UserPublic)
+@router.patch(
+    "/{user_id}",
+    dependencies=[Depends(get_current_active_superuser)],
+    response_model=UserPublic,
+)
 def update_user(user_id: uuid.UUID, user_in: UserUpdate, session: SessionDep):
     """
     Update a user.
     """
-    # TODO: only admin users can update a user by ID
     db_user = session.get(User, user_id)
     if not db_user:
         raise HTTPException(
