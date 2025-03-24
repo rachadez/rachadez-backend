@@ -1,35 +1,38 @@
 PACKAGE_PATH = ./src
 APP = app/main.py
+TEST_DIR = app/tests/
 PYTHON3_BIN = $(shell which python3)
 
-help:
-	@echo "Available targets:"
-	@echo "    install    - Install dependecies"
-	@echo "    run        - Run the application"
-	@echo "    db-up      - Create database container"
-	@echo "    db-down    - Destroy database container"
-	@echo "    help       - Display help message"
 
+.PHONY: help
+help: ## Display this help.
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+##@ Development 
 .PHONY: install
-install:
+install: ## Install dependencies
 	poetry install
 
 .PHONY: run
-run:
+run: ## Run the application
 	poetry run fastapi run $(APP)
 
 .PHONY: run-dev
-run-dev:
+run-dev: ## Run the aplication in dev mode
 	poetry run fastapi dev $(APP)
   
 .PHONY: db-up
-db-up:
+db-up: ## Create database container
 	docker compose up -d
 
 .PHONY: db-down
-db-down:
+db-down: ## Destroy database container
 	docker compose down
 
 .PHONY: build
-build:
+build: ## Build the container application image
 	docker build -t rachadez-backend .
+
+.PHONY: test
+test: ## Run unit tests
+	poetry run pytest -v

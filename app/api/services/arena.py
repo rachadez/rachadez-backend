@@ -48,3 +48,8 @@ def update_arena(session: SessionDep, db_arena: Arena,
     session.refresh(db_arena)
 
     return db_arena
+
+
+def delete(session: SessionDep, db_arena: Arena) -> None:
+    session.delete(db_arena)
+    session.commit()
