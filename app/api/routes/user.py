@@ -35,6 +35,12 @@ def create_user(user_in: UserCreate, session: SessionDep) -> User | None:
     user_db = user_service.create_user(session=session, user_create=user_in)
     return user_db
 
+#Get users that are blocked
+#TODO: only admin can list blocked users
+@router.get("/blocked_users", response_model=list[UserPublic])
+def get_blocked_users(session: SessionDep):
+    users = session.exec(select(User).where(User.is_active == False)).all()
+    return users
 
 @router.post("/signup", response_model=UserPublic)
 def register_user(session: SessionDep, user_in: UserRegister) -> Any:
@@ -129,3 +135,25 @@ def delete_user(user_id: uuid.UUID, session: SessionDep):
     session.delete(user)
     session.commit()
     return {"ok": True}
+
+# Block a user
+# TODO: only admin can blocked
+@router.patch("/block/{user_id}", response_model=dict)
+def block_user(user_id: uuid.UUID, session: SessionDep):
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.is_active = False
+    session.add(user)
+    session.commit() 
+    return {"ok":True}
+
+@router.patch("/unblock/{user_id}", response_model=dict)
+def unblock_user(user_id: uuid.UUID, session: SessionDep):
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.is_active = True
+    session.add(user)
+    session.commit()
+    return {"ok":True}
