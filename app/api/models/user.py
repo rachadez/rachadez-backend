@@ -1,14 +1,26 @@
 import uuid
+from enum import Enum
 
 from pydantic import EmailStr
 from sqlmodel import Field, SQLModel
 
 
+class Occupation(Enum):
+    ALUNO = "ALUNO"
+    SERVIDOR = "SERVIDOR"
+    PROFESSOR = "PROFESSOR"
+    EXTERNO = "EXTERNO"
+
+
 # Shared properties
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
+    cpf: str = Field(unique=True, index=True, max_length=11)
+    phone: str | None = Field(default=None, max_length=11)
+    occupation: Occupation = Field(default=Occupation.ALUNO)
     is_active: bool = True
     is_admin: bool = False
+    is_internal: bool = True
     full_name: str | None = Field(default=None, max_length=255)
 
 
