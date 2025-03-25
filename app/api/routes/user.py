@@ -28,11 +28,18 @@ def create_user(user_in: UserCreate, session: SessionDep) -> User | None:
     """
     Create a new user.
     """
+    user_db = user_service.get_user_by_cpf(session=session, cpf=user_in.cpf)
+    if user_db:
+        raise HTTPException(
+            status_code=404, detail="The user with this CPF already exists."
+        )
+
     user_db = user_service.get_user_by_email(session=session, email=user_in.email)
     if user_db:
         raise HTTPException(
             status_code=404, detail="The user with this email already exists."
         )
+
     user_db = user_service.create_user(session=session, user_create=user_in)
     return user_db
 
@@ -174,4 +181,3 @@ def unblock_user(user_id: uuid.UUID, session: SessionDep):
     session.add(user)
     session.commit()
     return user
-
