@@ -39,9 +39,11 @@ def create_user(user_in: UserCreate, session: SessionDep) -> User | None:
         raise HTTPException(
             status_code=404, detail="The user with this email already exists."
         )
-
-    user_db = user_service.create_user(session=session, user_create=user_in)
-    return user_db
+    try:
+        user_db = user_service.create_user(session=session, user_create=user_in)
+        return user_db
+    except HTTPException as e:
+        raise e
 
 
 @router.post("/signup", response_model=UserPublic)

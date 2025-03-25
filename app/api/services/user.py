@@ -1,12 +1,27 @@
+import re
 from typing import Any
-
+from fastapi import HTTPException
+from pydantic import EmailStr
 from sqlmodel import Session, select
+from app.api.models.user import Occupation
 
 from app.core.security import get_password_hash
 from app.api.models.user import User, UserCreate, UserUpdate
 
 
+def validate_email(email: EmailStr):
+    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.ufcg\.edu\.br$"
+    return bool(re.match(pattern, email))
+
+
 def create_user(*, session: Session, user_create: UserCreate) -> User:
+    
+    if user_create.is_internal and user_create.occupation == Occupation.EXTERNO:
+        raise HTTPException(status_code=400, detail="Internal user cannot have the occupation 'EXTERNO'")
+
+    if user_create.is_internal and not validate_email(user_create.email):
+        raise HTTPException(status_code = 400, detail="Invalid email: Only @*.ufcg.edu.br addresses are allowed.")
+
     db_obj = User.model_validate(
         user_create, update={"hashed_password": get_password_hash(user_create.password)}
     )
