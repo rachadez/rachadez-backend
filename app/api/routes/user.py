@@ -51,6 +51,12 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     """
     Create new user without the need to be logged in.
     """
+    user_db = user_service.get_user_by_cpf(session=session, cpf=user_in.cpf)
+    if user_db:
+        raise HTTPException(
+            status_code=404, detail="The user with this CPF already exists."
+        )
+
     user = user_service.get_user_by_email(session=session, email=user_in.email)
     if user:
         raise HTTPException(
