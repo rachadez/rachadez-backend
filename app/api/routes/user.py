@@ -2,6 +2,8 @@ from typing import Annotated, Any
 import uuid
 from fastapi import APIRouter, Query, HTTPException, Depends
 from sqlmodel import select
+from sqlalchemy.exc import ProgrammingError
+
 
 from app.api.services import user as user_service
 from app.api.models.user import (
@@ -63,7 +65,13 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
             detail="The user with this email already exists in the system",
         )
     user_create = UserCreate.model_validate(user_in)
-    user = user_service.create_user(session=session, user_create=user_create)
+    try:
+        user = user_service.create_user(session=session, user_create=user_create)
+    except HTTPException as e:
+        raise e
+    except ProgrammingError as e:
+        raise e
+        
     return user
 
 

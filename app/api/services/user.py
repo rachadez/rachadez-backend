@@ -4,6 +4,7 @@ from fastapi import HTTPException
 from pydantic import EmailStr
 from sqlmodel import Session, select
 from app.api.models.user import Occupation
+from app.api.utils.utils import send_email
 
 from app.core.security import get_password_hash
 from app.api.models.user import User, UserCreate, UserUpdate
@@ -21,6 +22,10 @@ def create_user(*, session: Session, user_create: UserCreate) -> User:
 
     if user_create.is_internal and not validate_email(user_create.email):
         raise HTTPException(status_code = 400, detail="Invalid email: Only @*.ufcg.edu.br addresses are allowed.")
+    try:
+        send_email(user_create.email, 'Confirme seu email', "Confirme seu email clicando nesse link: LINK")
+    except Exception as e:
+        raise e
 
     db_obj = User.model_validate(
         user_create, update={"hashed_password": get_password_hash(user_create.password)}
