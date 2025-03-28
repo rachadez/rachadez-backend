@@ -5,7 +5,7 @@ from pydantic import EmailStr
 from sqlmodel import Field, SQLModel
 
 
-class Occupation(Enum):
+class Occupation(str, Enum):
     ALUNO = "ALUNO"
     SERVIDOR = "SERVIDOR"
     PROFESSOR = "PROFESSOR"

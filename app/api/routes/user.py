@@ -1,5 +1,6 @@
 from typing import Annotated, Any
 import uuid
+from pydantic import EmailStr
 from fastapi import APIRouter, Query, HTTPException, Depends
 from sqlmodel import select
 from sqlalchemy.exc import ProgrammingError
@@ -44,7 +45,6 @@ def create_user(user_in: UserCreate, session: SessionDep) -> User | None:
 
     user_db = user_service.create_user(session=session, user_create=user_in)
     return user_db
-  
 
 
 @router.post("/signup", response_model=UserPublic)
@@ -71,7 +71,7 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
         raise e
     except ProgrammingError as e:
         raise e
-        
+
     return user
 
 
@@ -99,6 +99,30 @@ def read_user_by_id(
     """
 
     user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Return my own user data
+    if user == current_user:
+        return user
+
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=403,
+            detail="The user doesn't have enough privileges",
+        )
+    return user
+
+
+@router.get("/{user_email}", response_model=UserPublic)
+def read_user_by_email(
+    user_email: EmailStr, session: SessionDep, current_user: CurrentUser
+) -> Any:
+    """
+    Retrieve a user by email.
+    """
+
+    user = user_service.get_user_by_email(email=user_email, session=session)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
