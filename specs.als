@@ -30,7 +30,6 @@ sig Racha {
     local: one Arena,
     horario: one Horario,
     maxParticipantes: lone Int,
-    custo: lone Int
 }
 
 sig Horario {
@@ -97,7 +96,6 @@ pred criarRacha[c, c1: Racha, u: Usuario, e: Esporte, l: Arena, h: Horario] {
     c1.horario = h
     c1.participantes = u
     no c1.maxParticipantes
-    no c1.custo
     Racha' = Racha + c1
 }
 
@@ -110,7 +108,6 @@ pred adicionarParticipante[r, r1: Racha, u: Usuario] {
     r1.local = r.local
     r1.horario = r.horario
     r1.maxParticipantes = r.maxParticipantes
-    r1.custo = r.custo
     Racha' = Racha - r + r1
 }
 
@@ -123,7 +120,6 @@ pred removerParticipante[r, r1: Racha, u: Usuario] {
     r1.local = r.local
     r1.horario = r.horario
     r1.maxParticipantes = r.maxParticipantes
-    r1.custo = r.custo
     Racha' = Racha - r + r1
 }
 
