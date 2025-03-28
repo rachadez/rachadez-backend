@@ -196,8 +196,11 @@ def get_blocked_users(session: SessionDep):
 
 
 # Block a user
-# TODO: only admin can blocked
-@router.patch("/block/{user_id}", response_model=dict)
+@router.patch(
+    "/block/{user_id}",
+    dependencies=[Depends(get_current_active_superuser)],
+    response_model=dict,
+)
 def block_user(user_id: uuid.UUID, session: SessionDep):
     """
     Block a user by id.
