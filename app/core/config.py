@@ -14,5 +14,6 @@ class Settings:
     EMAILS_FROM_EMAIL: str = "rachadez10@gmail.com"
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False
+    URL_BASE: str = "http://localhost:8000/v1"
 
 settings = Settings()

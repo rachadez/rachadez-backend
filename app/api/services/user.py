@@ -3,8 +3,12 @@ from typing import Any
 from fastapi import HTTPException
 from pydantic import EmailStr
 from sqlmodel import Session, select
+from datetime import timedelta
+from fastapi import Request
 from app.api.models.user import Occupation
 from app.api.utils import send_email
+from app.core.security import create_access_token
+from app.core.config import settings
 
 from app.core.security import get_password_hash
 from app.api.models.user import User, UserCreate, UserUpdate
@@ -26,14 +30,6 @@ def create_user(*, session: Session, user_create: UserCreate) -> User:
             status_code=400,
             detail="Invalid email: must have a domain of ufcg.edu.br.",
         )
-    try:
-        send_email(
-            user_create.email,
-            "Confirme seu email",
-            "Confirme seu email clicando nesse link: LINK",
-        )
-    except Exception as e:
-        raise e
 
     db_obj = User.model_validate(
         user_create, update={"hashed_password": get_password_hash(user_create.password)}
@@ -41,7 +37,26 @@ def create_user(*, session: Session, user_create: UserCreate) -> User:
     session.add(db_obj)
     session.commit()
     session.refresh(db_obj)
+
+    user = get_user_by_email(session=session, email=user_create.email)
+    dispatch_confirmation_email(user)
+
     return db_obj
+
+
+
+def dispatch_confirmation_email(user: User):
+    token = create_access_token(user.id, timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
+    try:
+        link = f"{settings.URL_BASE}/users/confirm/{token}"
+        send_email(
+            user.email,
+            "Confirme seu email",
+            "Confirme seu email clicando nesse link: " + link
+        )
+    except Exception as e:
+        raise e
+
 
 
 def read_users(session: Session, offset: int, limit: int):
