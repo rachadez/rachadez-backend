@@ -4,10 +4,11 @@ module rachadez
 abstract sig Usuario {
     nome: one Nome,
     email: one Email,
+    cpf: one CPF,
     telefone: lone Telefone
 }
 
-sig Nome, Email, Telefone {}
+sig Nome, Email, Telefone, CPF {}
 
 sig Arena {
     nome: one NomeArena,
@@ -45,10 +46,10 @@ sig Tempo {
 
 -- Fatos (restrições)
 
--- Um usuário não pode ter o mesmo email ou telefone que outro
-fact emailsTelefonesUnicos {
+-- Um usuário não pode ter o mesmo email ou CPF que outro
+fact emailsCPFsUnicos {
     no disj u1, u2: Usuario | u1.email = u2.email
-    no disj u1, u2: Usuario | u1.telefone = u2.telefone and u1.telefone != none
+    no disj u1, u2: Usuario | u1.cpf = u2.cpf and u1.cpf != none
 }
 
 -- O horário de fim deve ser após o horário de início
