@@ -182,8 +182,11 @@ def delete_user(user_id: uuid.UUID, session: SessionDep):
 
 
 # Get users that are blocked
-# TODO: only admin can list blocked users
-@router.get("/block", response_model=list[UserPublic])
+@router.get(
+    "/block",
+    dependencies=[Depends(get_current_active_superuser)],
+    response_model=list[UserPublic],
+)
 def get_blocked_users(session: SessionDep):
     """
     Retrieve blocked users.
