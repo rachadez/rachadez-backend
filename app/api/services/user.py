@@ -4,26 +4,34 @@ from fastapi import HTTPException
 from pydantic import EmailStr
 from sqlmodel import Session, select
 from app.api.models.user import Occupation
-from app.api.utils.utils import send_email
+from app.api.utils import send_email
 
 from app.core.security import get_password_hash
 from app.api.models.user import User, UserCreate, UserUpdate
 
 
-def validate_email(email: EmailStr):
+def validate_email(email: EmailStr) -> bool:
     pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.ufcg\.edu\.br$"
     return bool(re.match(pattern, email))
 
 
 def create_user(*, session: Session, user_create: UserCreate) -> User:
-    
     if user_create.is_internal and user_create.occupation == Occupation.EXTERNO:
-        raise HTTPException(status_code=400, detail="Internal user cannot have the occupation 'EXTERNO'")
+        raise HTTPException(
+            status_code=400, detail="Internal user cannot have the occupation 'EXTERNO'"
+        )
 
     if user_create.is_internal and not validate_email(user_create.email):
-        raise HTTPException(status_code = 400, detail="Invalid email: Only @*.ufcg.edu.br addresses are allowed.")
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid email: must have a domain of ufcg.edu.br.",
+        )
     try:
-        send_email(user_create.email, 'Confirme seu email', "Confirme seu email clicando nesse link: LINK")
+        send_email(
+            user_create.email,
+            "Confirme seu email",
+            "Confirme seu email clicando nesse link: LINK",
+        )
     except Exception as e:
         raise e
 
