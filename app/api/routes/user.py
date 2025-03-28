@@ -214,7 +214,11 @@ def block_user(user_id: uuid.UUID, session: SessionDep):
     return {"ok": True}
 
 
-@router.patch("/unblock/{user_id}", response_model=UserPublic)
+@router.patch(
+    "/unblock/{user_id}",
+    dependencies=[Depends(get_current_active_superuser)],
+    response_model=UserPublic,
+)
 def unblock_user(user_id: uuid.UUID, session: SessionDep):
     """
     Unblock a user by id.
