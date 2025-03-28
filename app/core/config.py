@@ -1,5 +1,6 @@
 import secrets
 
+
 class Settings:
     API_V1_STR: str = "/v1"
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost/postgres"
@@ -15,5 +16,8 @@ class Settings:
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False
     URL_BASE: str = "http://localhost:8000/v1"
+
+    CORS_ORIGINS: list[str] = ["http://localhost", "http://localhost:5173"]
+
 
 settings = Settings()
