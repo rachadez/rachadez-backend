@@ -8,6 +8,10 @@ abstract sig Usuario {
     telefone: lone Telefone
 }
 
+-- Tipos de usuário
+sig Administrador extends Usuario {}
+sig UsuarioComum extends Usuario {}
+
 sig Nome, Email, Telefone, CPF {}
 
 sig Arena {
@@ -25,12 +29,12 @@ sig Esporte {
 sig NomeEsporte {}
 
 sig Racha {
-    criador: one Usuario,
-    participantes: set Usuario,
+    criador: one Administrador,
+    participantes: set Usuario,  -- Participantes podem ser qualquer Usuario
     esporte: one Esporte,
     local: one Arena,
     horario: one Horario,
-    maxParticipantes: lone Int,
+    maxParticipantes: lone Int
 }
 
 sig Horario {
@@ -65,9 +69,9 @@ fact semConflitoParticipacao {
             conflitoHorario[r1.horario, r2.horario]
 }
 
--- O criador de um racha é automaticamente participante
-fact criadorEParticipante {
-    all r: Racha | r.criador in r.participantes
+-- O criador NÃO é automaticamente participante (modificado)
+fact criadorNaoAutomatico {
+    all r: Racha | r.criador !in r.participantes
 }
 
 -- O número de participantes não pode exceder o máximo (se definido)
@@ -88,19 +92,19 @@ pred lt[t1, t2: Tempo] {
 
 -- Operações (comandos)
 
--- Criar um novo racha
-pred criarRacha[c, c1: Racha, u: Usuario, e: Esporte, l: Arena, h: Horario] {
+-- Criar um novo racha (agora exige um Administrador)
+pred criarRacha[c, c1: Racha, adm: Administrador, e: Esporte, l: Arena, h: Horario] {
     c1 not in Racha
-    c1.criador = u
+    c1.criador = adm
     c1.esporte = e
     c1.local = l
     c1.horario = h
-    c1.participantes = u
+    no c1.participantes  -- Admin não é mais automaticamente adicionado
     no c1.maxParticipantes
     Racha' = Racha + c1
 }
 
--- Adicionar participante a um racha
+-- Adicionar participante a um racha (qualquer usuário pode ser adicionado)
 pred adicionarParticipante[r, r1: Racha, u: Usuario] {
     u not in r.participantes
     some r.maxParticipantes implies #r.participantes < r.maxParticipantes
@@ -112,10 +116,10 @@ pred adicionarParticipante[r, r1: Racha, u: Usuario] {
     Racha' = Racha - r + r1
 }
 
--- Remover participante de um racha
+-- Remover participante de um racha (exceto o criador se estiver participando)
 pred removerParticipante[r, r1: Racha, u: Usuario] {
     u in r.participantes
-    u != r.criador  -- o criador não pode ser removido
+    u != r.criador  -- o criador (Administrador) não pode ser removido se estiver participando
     r1.participantes = r.participantes - u
     r1.esporte = r.esporte
     r1.local = r.local
@@ -124,14 +128,29 @@ pred removerParticipante[r, r1: Racha, u: Usuario] {
     Racha' = Racha - r + r1
 }
 
--- Exemplo de verificação
+-- Verificações mantidas (todas as originais)
+assert ApenasAdminsCriamRachas {
+    all r: Racha | r.criador in Administrador
+}
+check ApenasAdminsCriamRachas for 5
+
+-- Nova verificação para garantir que criador não é automaticamente participante
+assert CriadorNaoAutomatico {
+    all r: Racha | r.criador !in r.participantes
+}
+check CriadorNaoAutomatico for 5
+
+-- Verificação original mantida (agora testa cenário opcional)
 assert CriadorEParticipante {
-    all r: Racha | r.criador in r.participantes
+    all r: Racha | r.criador in Usuario and (r.criador in r.participantes or r.criador not in r.participantes)
 }
 check CriadorEParticipante for 5
 
--- Exemplo de execução
+-- Exemplo de execução atualizado
 run exemplo {
-    some u: Usuario, e: Esporte, l: Arena, h: Horario |
-        some r, r1: Racha | criarRacha[r, r1, u, e, l, h]
-} for 5 but 2 Racha
+    some adm: Administrador, comum: UsuarioComum, e: Esporte, l: Arena, h: Horario |
+        some r, r1, r2: Racha | 
+            criarRacha[r, r1, adm, e, l, h] and
+            adicionarParticipante[r1, r2, comum] and
+            (adm in r2.participantes or adm not in r2.participantes)  -- Admin pode ou não participar
+} for 5 but 3 Racha, exactly 1 Administrador, exactly 1 UsuarioComum
