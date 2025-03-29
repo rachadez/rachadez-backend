@@ -79,6 +79,11 @@ fact limiteParticipantes {
     all r: Racha | some r.maxParticipantes implies #r.participantes <= r.maxParticipantes
 }
 
+-- A capacidade da Arena deve ser sempre maior que zero
+fact capacidadePositiva {
+    all a: Arena | some a.capacidade implies a.capacidade > 0
+}
+
 -- Predicados e funções auxiliares
 pred conflitoHorario[h1, h2: Horario] {
     not (lt[h1.fim, h2.inicio] or lt[h2.fim, h1.inicio])
