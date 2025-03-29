@@ -236,7 +236,7 @@ def unblock_user(user_id: uuid.UUID, session: SessionDep):
     return user
 
 
-@router.patch("/confirm/{token}", response_model=UserPublic)
+@router.get("/confirm/{token}", response_model=UserPublic)
 def confirm_email(token: str, session: SessionDep):
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
@@ -256,4 +256,3 @@ def confirm_email(token: str, session: SessionDep):
     session.commit()
 
     return user
-
