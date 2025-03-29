@@ -39,7 +39,7 @@ def get_arenas(session: SessionDep, offset: int, limit: int) -> Any:
 
 
 def update_arena(session: SessionDep, db_arena: Arena,
-                 arena_update: ArenaUpdate) -> Arena | None:
+    arena_update: ArenaUpdate) -> Arena | None:
     arena_data = arena_update.model_dump(exclude_unset=True)
     db_arena.sqlmodel_update(arena_data)
 
