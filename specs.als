@@ -22,11 +22,13 @@ sig Arena {
 
 sig NomeArena, Endereco {}
 
+-- Substitua sig Esporte por:
+abstract sig NomeEsporte {}
+one sig Society, Volei, Tenis, BeachTenis extends NomeEsporte {}
+
 sig Esporte {
     nome: one NomeEsporte
 }
-
-sig NomeEsporte {}
 
 sig Racha {
     criador: one Administrador,
@@ -82,6 +84,29 @@ fact limiteParticipantes {
 -- A capacidade da Arena deve ser sempre maior que zero
 fact capacidadePositiva {
     all a: Arena | some a.capacidade implies a.capacidade > 0
+}
+
+-- Adicione ao sig Tempo
+fact tempoValido {
+    all t: Tempo | {
+        t.dia >= 1 and t.dia <= 31
+        t.hora >= 0 and t.hora <= 23
+        t.minuto >= 0 and t.minuto <= 59
+    }
+}
+
+fact nomesArenasUnicos {
+    no disj a1, a2: Arena | a1.nome = a2.nome
+}
+
+fact capacidadeCompativel {
+    all r: Racha | {
+        some r.local.capacidade implies #r.participantes <= r.local.capacidade
+    }
+}
+
+fact minimoParticipantes {
+    all r: Racha | #r.participantes >= 1  -- Pelo menos 1 participante
 }
 
 -- Predicados e funções auxiliares
