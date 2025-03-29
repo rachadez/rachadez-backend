@@ -4,11 +4,6 @@ from pydantic import EmailStr
 from fastapi import APIRouter, Query, HTTPException, Depends
 from sqlmodel import select
 from sqlalchemy.exc import ProgrammingError
-from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
-from app.core.config import settings
-import jwt
-from app.core.security import ALGORITHM
-
 
 from app.api.services import user as user_service
 from app.api.models.user import (
@@ -235,24 +230,3 @@ def unblock_user(user_id: uuid.UUID, session: SessionDep):
     session.commit()
     return user
 
-
-@router.get("/confirm/{token}", response_model=UserPublic)
-def confirm_email(token: str, session: SessionDep):
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = uuid.UUID(payload["sub"])
-    except ExpiredSignatureError:
-        raise HTTPException(status_code=400, detail="Expired token")
-    except InvalidTokenError:
-        raise HTTPException(status_code=400, detail="Invalid token")
-
-    user = session.get(User, user_id)
-
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    user.is_active = True
-    session.add(user)
-    session.commit()
-
-    return user

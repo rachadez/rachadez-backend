@@ -1,5 +1,5 @@
 from app.api.deps import CurrentUser, SessionDep
-
+import uuid
 from app.api.models import token
 from app.api.models.token import Token
 from typing import Annotated, Any
@@ -10,7 +10,13 @@ from app.core.config import settings
 from app.core import security
 from app.core.security import get_password_hash
 from app.api.services import login as login_service
-from app.api.models.user import UserPublic, NewPassword
+from app.api.models.user import UserPublic, NewPassword, User
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
+import jwt
+from app.core.config import settings
+from app.core.security import ALGORITHM
+
+
 from app.api.utils import (
     generate_password_reset_token,
     send_email,
@@ -63,7 +69,7 @@ def recover_password(email: str, session: SessionDep) -> str:
             detail="The user with this email does not exist in the system.",
         )
     password_reset_token = generate_password_reset_token(email=email)
-    user_service.dispatch_reset_password_email(email=email, token=password_reset_token)
+    login_service.dispatch_reset_password_email(email=email, token=password_reset_token)
     return "Password recovery email sent"
 
 
@@ -88,3 +94,24 @@ def reset_password(session: SessionDep, body: NewPassword) -> str:
     session.add(user)
     session.commit()
     return "Password updated successfully"
+
+@router.get("/login/confirm-email/{token}", response_model=UserPublic)
+def confirm_email(token: str, session: SessionDep):
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = uuid.UUID(payload["sub"])
+    except ExpiredSignatureError:
+        raise HTTPException(status_code=400, detail="Expired token")
+    except InvalidTokenError:
+        raise HTTPException(status_code=400, detail="Invalid token")
+
+    user = session.get(User, user_id)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.is_active = True
+    session.add(user)
+    session.commit()
+
+    return user

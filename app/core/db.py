@@ -56,7 +56,6 @@ def init_arenas(session: Session):
             Arena.name == arena_name)).first()
 
         if not arena:
-            print(arenas[arena_name]['type'])
             new_arena = ArenaBase(
                 name=arena_name,
                 capacity=arenas[arena_name]['capacity'],
