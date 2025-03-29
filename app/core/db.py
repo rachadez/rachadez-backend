@@ -6,8 +6,8 @@ from sqlmodel import SQLModel, Session
 
 from app.core.config import settings
 from app.api.models.user import User, UserCreate, Occupation
-from app.api.models.arena import Arena
-from app.api.services.user import create_user
+from app.api.models.arena import ArenaBase, Arena
+from app.api.services.user import create_user, active_user
 from app.api.services.arena import create_arena
 
 
@@ -42,10 +42,11 @@ def init_admin(session: Session):
                               password=settings.FIRST_SUPERUSER_PASSWORD,
                               cpf=settings.FIRST_SUPERUSER_CPF,
                               is_admin=True,
-                              is_internal=False,
+                              is_internal=True,
                               occupation=Occupation.SERVIDOR)
 
-        create_user(session=session, user_create=new_user)
+        user = create_user(session=session, user_create=new_user)
+        active_user(session=session, db_user=user)
 
 
 def init_arenas(session: Session):
@@ -55,10 +56,12 @@ def init_arenas(session: Session):
             Arena.name == arena_name)).first()
 
         if not arena:
-            new_arena = Arena(
+            print(arenas[arena_name]['type'])
+            new_arena = ArenaBase(
                 name=arena_name,
                 capacity=arenas[arena_name]['capacity'],
-                type=arenas[arena_name]['type'], description="")
+                type=arenas[arena_name]['type'],
+                description="")
 
             create_arena(session, new_arena)
 

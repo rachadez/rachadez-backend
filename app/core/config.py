@@ -43,7 +43,7 @@ class Settings:
         },
         "Tenis": {
             "capacity": 4,
-            "type": "TENIS"
+            "type": "TÊNIS"
         },
         "Society": {
             "capacity": 10,
