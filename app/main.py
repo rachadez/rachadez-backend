@@ -4,12 +4,13 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app.api.main import api_router
 from app.core.config import settings
-from app.core.db import create_db_and_tables
+from app.core.db import create_db_and_tables, create_initial_data
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     create_db_and_tables()
+    create_initial_data()
     yield
 
 
