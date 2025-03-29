@@ -26,9 +26,10 @@ def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
 
 
-def create_admin_user():
+def create_initial_data():
     with Session(engine) as session:
         init_admin(session)
+        init_arenas(session)
 
 
 def init_admin(session: Session):
