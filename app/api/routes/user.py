@@ -1,7 +1,7 @@
 from typing import Annotated, Any
 import uuid
 from pydantic import EmailStr
-from fastapi import APIRouter, Query, HTTPException, Depends, security
+from fastapi import APIRouter, Query, HTTPException, Depends
 from sqlmodel import select
 from sqlalchemy.exc import ProgrammingError
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError

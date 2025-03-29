@@ -4,7 +4,6 @@ from fastapi import HTTPException
 from pydantic import EmailStr
 from sqlmodel import Session, select
 from datetime import timedelta
-from fastapi import Request
 from app.api.models.user import Occupation
 from app.api.utils import send_email
 from app.core.security import create_access_token
@@ -39,24 +38,43 @@ def create_user(*, session: Session, user_create: UserCreate) -> User:
     session.refresh(db_obj)
 
     user = get_user_by_email(session=session, email=user_create.email)
+    if not user:
+        raise HTTPException(
+            status_code=400,
+            detail="User not found.",
+        )
+
     dispatch_confirmation_email(user)
 
     return db_obj
 
 
-
 def dispatch_confirmation_email(user: User):
-    token = create_access_token(user.id, timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
+    token = create_access_token(
+        subject=user.id,
+        expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
     try:
         link = f"{settings.URL_BASE}/users/confirm/{token}"
         send_email(
-            user.email,
-            "Confirme seu email",
-            "Confirme seu email clicando nesse link: " + link
+            email_to=user.email,
+            subject=f"{settings.PROJECT_NAME} - Confirme seu email",
+            content=f"Confirme seu email clicando nesse link: {link}",
         )
     except Exception as e:
         raise e
 
+
+def dispatch_reset_password_email(email: str, token: str):
+    try:
+        link = f"{settings.URL_BASE}/reset-password/{token}"
+        send_email(
+            email_to=email,
+            subject=f"{settings.PROJECT_NAME} - Mude sua senha",
+            content=f"Confirme sua mudança de senha clicando nesse link: {link}",
+        )
+    except Exception as e:
+        raise e
 
 
 def read_users(session: Session, offset: int, limit: int):

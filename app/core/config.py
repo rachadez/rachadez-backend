@@ -2,6 +2,7 @@ import secrets
 
 
 class Settings:
+    PROJECT_NAME: str = "RACHADEZ"
     API_V1_STR: str = "/v1"
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost/postgres"
     # 60 minutes * 24 hours * 8 days
@@ -13,6 +14,7 @@ class Settings:
     SMTP_PASSWORD: str = "zvby bxlv ledq takm "
     EMAILS_FROM_NAME: str = "rachadez"
     EMAILS_FROM_EMAIL: str = "rachadez10@gmail.com"
+    EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 1
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False
     URL_BASE: str = "http://localhost:8000/v1"
