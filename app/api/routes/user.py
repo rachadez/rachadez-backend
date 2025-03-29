@@ -113,7 +113,7 @@ def read_user_by_id(
     return user
 
 
-@router.get("/{user_email}", response_model=UserPublic)
+@router.get("/email/{user_email}", response_model=UserPublic)
 def read_user_by_email(
     user_email: EmailStr, session: SessionDep, current_user: CurrentUser
 ) -> Any:
