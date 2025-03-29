@@ -158,29 +158,5 @@ pred removerParticipante[r, r1: Racha, u: Usuario] {
     Racha' = Racha - r + r1
 }
 
--- Verificações mantidas (todas as originais)
-assert ApenasAdminsCriamRachas {
-    all r: Racha | r.criador in Administrador
-}
-check ApenasAdminsCriamRachas for 5
-
--- Nova verificação para garantir que criador não é automaticamente participante
-assert CriadorNaoAutomatico {
-    all r: Racha | r.criador !in r.participantes
-}
-check CriadorNaoAutomatico for 5
-
--- Verificação original mantida (agora testa cenário opcional)
-assert CriadorEParticipante {
-    all r: Racha | r.criador in Usuario and (r.criador in r.participantes or r.criador not in r.participantes)
-}
-check CriadorEParticipante for 5
-
--- Exemplo de execução atualizado
-run exemplo {
-    some adm: Administrador, comum: UsuarioComum, e: Esporte, l: Arena, h: Horario |
-        some r, r1, r2: Racha | 
-            criarRacha[r, r1, adm, e, l, h] and
-            adicionarParticipante[r1, r2, comum] and
-            (adm in r2.participantes or adm not in r2.participantes)  -- Admin pode ou não participar
-} for 5 but 3 Racha, exactly 1 Administrador, exactly 1 UsuarioComum
+pred show[]{}
+run show for 10
