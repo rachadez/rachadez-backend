@@ -1,8 +1,6 @@
-from time import sleep
-
 from typing import Annotated
-
 from fastapi import Depends
+
 from sqlmodel import create_engine, select
 from sqlmodel import SQLModel, Session
 
@@ -12,7 +10,7 @@ from app.api.models.arena import Arena
 from app.api.services.user import create_user
 from app.api.services.arena import create_arena
 
-from app.core.config import settings
+
 # We need to import models so the database can be created by SQLModel
 # according to
 # https://sqlmodel.tiangolo.com/tutorial/create-db-and-table/#sqlmodel-metadata-order-matters
