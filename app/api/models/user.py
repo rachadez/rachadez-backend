@@ -18,7 +18,7 @@ class UserBase(SQLModel):
     cpf: str = Field(unique=True, index=True, max_length=11)
     phone: str | None = Field(default=None, max_length=11)
     occupation: Occupation = Field(default=Occupation.ALUNO)
-    is_active: bool = True
+    is_active: bool = False
     is_admin: bool = False
     is_internal: bool = True
     full_name: str | None = Field(default=None, max_length=255)
@@ -63,11 +63,6 @@ class User(UserBase, table=True):
 # Properties to return via API, id is always required
 class UserPublic(UserBase):
     id: uuid.UUID
-
-
-# class UsersPublic(SQLModel):
-#     data: list[UserPublic]
-#     count: int
 
 
 # Generic message
