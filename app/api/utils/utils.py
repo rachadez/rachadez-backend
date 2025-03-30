@@ -129,3 +129,23 @@ def is_reservation_available(session: Session, reservation: Reservation) -> bool
     ).first()
 
     return existing_reservation is None 
+
+def is_previous_week(date: datetime) -> bool:
+    """
+    Verifica se a data fornecida pertence a uma semana anterior à atual.
+    
+    Retorna:
+    - True: Se a data estiver em uma semana anterior à semana atual.
+    - False: Se a data estiver na semana atual ou no futuro.
+    """
+    
+    if date is None:
+        return True 
+    
+    today = datetime.today()
+    
+    # Calcula o início da semana atual (segunda-feira da semana atual)
+    start_of_week = today - timedelta(days=today.weekday())
+    
+    # Se a data for antes do início da semana atual, pertence a uma semana anterior
+    return date < start_of_week

@@ -4,7 +4,7 @@ from datetime import datetime
 import uuid
 
 from app.api.models.reservationUserLink import ReservationUserLink
-from app.api.models.user import User
+from app.api.models.user import User, UserPublic
 
 # Modelo Base
 class ReservationBase(SQLModel):
@@ -34,6 +34,7 @@ class ReservationUpdate(SQLModel):
     participants: list[uuid.UUID] = Field(default=[])
     
 class ReservationResponse(SQLModel):
+    id: uuid.UUID
     responsible_user_id: uuid.UUID
     arena_id: int 
     start_date: datetime

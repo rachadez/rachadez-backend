@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from app.api.models.user import User
 from sqlalchemy.orm import Session
-from app.api.deps import get_db, get_current_user
+from app.api.deps import CurrentUser, SessionDep, get_db, get_current_user
 from app.api.models.reservation import Reservation, ReservationUpdate, ReservationResponse
 from app.api.services.reservation import create_reservation, delete_reservation, get_participants_by_reservation_id, update_reservation
 from app.api.models.reservation import ReservationCreate
@@ -14,12 +14,13 @@ router = APIRouter(prefix="/reservations", tags=["reservations"])
 @router.post("/", response_model=ReservationResponse)
 def create_reservation_route(
     reservation_data: ReservationCreate,
-    db: Session = Depends(get_db)
+    db: SessionDep
     ):
     try:
         reservation = create_reservation(db, reservation_data)
         participants = get_participants_by_reservation_id(db,reservation.id)
         reservation_respose = ReservationResponse(
+                id = reservation.id,
                 responsible_user_id = reservation.responsible_user_id,
                 arena_id = reservation.arena_id,
                 start_date = reservation.start_date,
@@ -31,12 +32,13 @@ def create_reservation_route(
         raise HTTPException(status_code=500, detail=f"Erro ao criar reserva: {str(e)}")
 
 @router.put("/{reservation_id}", response_model=ReservationResponse)
-def update_reservation_route(reservation_id: uuid.UUID, updated_data: ReservationUpdate, db: Session = Depends(get_db)):
+def update_reservation_route(reservation_id: uuid.UUID, updated_data: ReservationUpdate, db: SessionDep, user: CurrentUser):
     try:
-     
-        reservation = update_reservation(db, reservation_id, updated_data)
+        
+        reservation = update_reservation(db, reservation_id, updated_data, user)
         participants = get_participants_by_reservation_id(db,reservation_id)
         reservation_respose = ReservationResponse(
+                id = reservation.id,
                 responsible_user_id = reservation.responsible_user_id,
                 arena_id = reservation.arena_id,
                 start_date = reservation.start_date,
@@ -49,13 +51,14 @@ def update_reservation_route(reservation_id: uuid.UUID, updated_data: Reservatio
         raise HTTPException(status_code=500, detail=f"Erro ao editar a reserva: {str(e)}")
     
 
-@router.delete("/{reservation_id}", response_model=str)
+@router.delete("/{user_id}/{reservation_id}", response_model=str)
 def cancel_reservation_route(
     reservation_id: uuid.UUID,
     user_id: uuid.UUID,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    return delete_reservation(db=db, reservation_id=reservation_id, user_id=user_id)
+    return delete_reservation(db=db, reservation_id=reservation_id, user_id=user_id, user=current_user)
 
 
 @router.get("/all", response_model=List[Reservation])
