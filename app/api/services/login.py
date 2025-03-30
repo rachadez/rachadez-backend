@@ -3,7 +3,7 @@ from app.api.models.user import User
 from sqlmodel import select
 from app.core.security import verify_password
 from fastapi import HTTPException
-from app.api.utils import send_email
+from app.api.utils.utils import send_email
 from app.core.security import create_access_token
 from app.core.config import settings
 from datetime import timedelta

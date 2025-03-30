@@ -1,16 +1,18 @@
+import datetime
+from typing import List
 import uuid
 from enum import Enum
 
 from pydantic import EmailStr
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
 
+from app.api.models.reservationUserLink import ReservationUserLink
 
 class Occupation(str, Enum):
     ALUNO = "ALUNO"
     SERVIDOR = "SERVIDOR"
     PROFESSOR = "PROFESSOR"
     EXTERNO = "EXTERNO"
-
 
 # Shared properties
 class UserBase(SQLModel):
@@ -22,8 +24,8 @@ class UserBase(SQLModel):
     is_admin: bool = False
     is_internal: bool = True
     full_name: str | None = Field(default=None, max_length=255)
-
-
+    #last_reservation: datetime = Field(default=None)
+    
 # Properties to receive via API on creation
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=40)
@@ -59,6 +61,8 @@ class UpdatePassword(SQLModel):
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
+    reservations: list["Reservation"] = Relationship(back_populates="participants",link_model=ReservationUserLink)
+    
 
 
 # Properties to return via API, id is always required

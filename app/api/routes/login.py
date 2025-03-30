@@ -17,7 +17,7 @@ from app.core.config import settings
 from app.core.security import ALGORITHM
 
 
-from app.api.utils import (
+from app.api.utils.utils import (
     generate_password_reset_token,
     send_email,
     verify_password_reset_token,
