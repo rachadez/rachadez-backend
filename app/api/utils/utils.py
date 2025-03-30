@@ -15,6 +15,7 @@ from app.api.models.arena import Arena
 
 
 
+
 def send_email(*, email_to: str, subject: str, content: str):
     msg = MIMEMultipart()
     msg["From"] = settings.SMTP_USER
@@ -91,9 +92,7 @@ def verify_monthly_sports(reservation: Reservation, arena: Arena, user: User) ->
     
 
 
-from datetime import datetime, time
 
-from datetime import time
 
 def is_valid_sports_schedule(reservation: Reservation, arena: Arena) -> bool:
 
