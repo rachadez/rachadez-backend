@@ -1,21 +1,24 @@
-from datetime import datetime, timedelta
-from app.api.models.arena import Arena
+from datetime import datetime, timedelta, timezone, time
+from fastapi import security
+from jwt.exceptions import InvalidTokenError
+from sqlalchemy.orm import Session
+import jwt
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+
 from app.api.models.reservation import Reservation
 from app.api.models.user import User
 from app.core.config import settings
-from datetime import time
-from sqlalchemy.orm import Session
+from app.api.models.arena import Arena
 
 
 
 
-def send_email(to_email: str, subject: str, content: str):
+def send_email(*, email_to: str, subject: str, content: str):
     msg = MIMEMultipart()
     msg["From"] = settings.SMTP_USER
-    msg["To"] = to_email
+    msg["To"] = email_to
     msg["Subject"] = subject
 
     msg.attach(MIMEText(content, "plain"))
@@ -24,11 +27,11 @@ def send_email(to_email: str, subject: str, content: str):
         server = smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT)
         server.starttls()
         server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
-        server.sendmail(settings.SMTP_USER, to_email, msg.as_string())
+        server.sendmail(settings.SMTP_USER, email_to, msg.as_string())
         server.quit()
-        print("Email enviado com sucesso!")
+        print("Email sent successfully!")
     except Exception as e:
-        print(f"Erro ao enviar email: {e}")
+        print(f"Error sending email: {e}")
         
 
 
@@ -149,3 +152,25 @@ def is_previous_week(date: datetime) -> bool:
     
     # Se a data for antes do início da semana atual, pertence a uma semana anterior
     return date < start_of_week
+
+def verify_password_reset_token(token: str) -> str | None:
+    try:
+        decoded_token = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+        )
+        return str(decoded_token["sub"])
+    except InvalidTokenError:
+        return None
+
+
+def generate_password_reset_token(email: str) -> str:
+    delta = timedelta(hours=settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS)
+    now = datetime.now(timezone.utc)
+    expires = now + delta
+    exp = expires.timestamp()
+    encoded_jwt = jwt.encode(
+        {"exp": exp, "nbf": now, "sub": email},
+        settings.SECRET_KEY,
+        algorithm=security.ALGORITHM,
+    )
+    return encoded_jwt

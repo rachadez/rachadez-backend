@@ -7,7 +7,7 @@ from app.api.deps import CurrentUser, SessionDep
 from app.api.models.reservationUserLink import ReservationUserLink
 from app.api.models.reservation import Reservation, ReservationCreate, ReservationUpdate
 from app.api.models.user import User
-from app.api.utils.utils import is_previous_week, verify_monthly_sports, verify_weekly_sports, is_valid_sports_schedule, is_reservation_available
+from app.api.utils.utils import verify_monthly_sports, verify_weekly_sports, is_valid_sports_schedule, is_reservation_available
 from app.api.models.arena import Arena
     
 def create_reservation(session: SessionDep, reservation_data: ReservationCreate):
