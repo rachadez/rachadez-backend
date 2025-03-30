@@ -1,6 +1,6 @@
 import pytest
 
-from app.api.models.arena import Arena
+from app.api.models.arena import Arena, ArenaType
 from app.tests.api.base import client, db_session, setup_db
 
 
@@ -9,7 +9,8 @@ ARENA_PREFIX = "/v1/arenas"
 
 @pytest.fixture
 def setUp(db_session):
-    arena = Arena(name="Volei1", description="Foo bar", capacity=10)
+    arena = Arena(name="Volei1", description="Foo bar",
+                  capacity=10, type=ArenaType.VOLEI)
     db_session.add(arena)
     db_session.commit()
     db_session.refresh(arena)
@@ -40,7 +41,7 @@ class TestArenaRoutes():
 
     def test_create_arena(self, client):
         data = {"name": "Society Teste",
-                "description": "Foo bar", "capacity": 10}
+                "description": "Foo bar", "capacity": 10, "type": "VOLEI"}
         response = client.post(ARENA_PREFIX + "/", json=data)
 
         created = client.get(ARENA_PREFIX + "/1").json()

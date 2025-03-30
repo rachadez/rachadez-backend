@@ -1,12 +1,11 @@
 from typing import Any
 
-from sqlmodel import select, func
+from sqlmodel import select, func, Session
 
-from app.core.db import SessionDep
 from app.api.models.arena import Arena, ArenasPublic, ArenaBase, ArenaUpdate
 
 
-def create_arena(session: SessionDep, arena: ArenaBase) -> Arena:
+def create_arena(session: Session, arena: ArenaBase) -> Arena:
     obj = Arena.model_validate(arena)
     session.add(obj)
     session.commit()
@@ -14,21 +13,21 @@ def create_arena(session: SessionDep, arena: ArenaBase) -> Arena:
     return obj
 
 
-def get_arena_by_name(session: SessionDep, arena: ArenaBase) -> Arena | None:
+def get_arena_by_name(session: Session, arena: ArenaBase) -> Arena | None:
     query = select(Arena).where(Arena.name == arena.name)
     session_arena = session.exec(query).first()
 
     return session_arena
 
 
-def get_arena_by_id(session: SessionDep, arena_id: int) -> Arena | None:
+def get_arena_by_id(session: Session, arena_id: int) -> Arena | None:
     query = select(Arena).where(Arena.id == arena_id)
     arena = session.exec(query).first()
 
     return arena
 
 
-def get_arenas(session: SessionDep, offset: int, limit: int) -> Any:
+def get_arenas(session: Session, offset: int, limit: int) -> Any:
     count_statement = select(func.count()).select_from(Arena)
     count = session.exec(count_statement).one()
 
@@ -38,7 +37,7 @@ def get_arenas(session: SessionDep, offset: int, limit: int) -> Any:
     return ArenasPublic(data=list(arenas), count=count)
 
 
-def update_arena(session: SessionDep, db_arena: Arena,
+def update_arena(session: Session, db_arena: Arena,
                  arena_update: ArenaUpdate) -> Arena | None:
     arena_data = arena_update.model_dump(exclude_unset=True)
     db_arena.sqlmodel_update(arena_data)
@@ -50,6 +49,6 @@ def update_arena(session: SessionDep, db_arena: Arena,
     return db_arena
 
 
-def delete(session: SessionDep, db_arena: Arena) -> None:
+def delete(session: Session, db_arena: Arena) -> None:
     session.delete(db_arena)
     session.commit()
