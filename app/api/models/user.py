@@ -4,22 +4,14 @@ from enum import Enum
 
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
-from sqlalchemy.orm import Mapped, Relationship
 
 from app.api.models.reservationUserLink import ReservationUserLink
-
-
-
-
-
-
 
 class Occupation(Enum):
     ALUNO = "ALUNO"
     SERVIDOR = "SERVIDOR"
     PROFESSOR = "PROFESSOR"
     EXTERNO = "EXTERNO"
-
 
 # Shared properties
 class UserBase(SQLModel):
@@ -32,8 +24,6 @@ class UserBase(SQLModel):
     is_internal: bool = True
     full_name: str | None = Field(default=None, max_length=255)
     
-
-
 # Properties to receive via API on creation
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=40)

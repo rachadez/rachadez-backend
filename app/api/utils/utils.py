@@ -1,8 +1,10 @@
 from datetime import datetime, timedelta
+from app.api.models.arena import Arena
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from app.api.models.reservation import Reservation
+from app.api.models.user import User
 from app.core.config import settings
 from datetime import time
 from sqlalchemy.orm import Session
@@ -30,10 +32,9 @@ def send_email(to_email: str, subject: str, content: str):
         
 
 
-def verify_weekly_sports(reservation: Reservation) -> bool:
+def verify_weekly_sports(reservation: Reservation, arena: Arena, user: User) -> bool:
 
-    arena = reservation.arena
-    user = reservation.user
+    
     start_date = reservation.start_date
 
     now = datetime.now()
@@ -58,15 +59,14 @@ def verify_weekly_sports(reservation: Reservation) -> bool:
                 if start_date.time() in valid_times and time(5, 30) <= start_date.time() < time(18, 0):
                     return True
             return False
+    return True
 
 
 
 
         
-def verify_monthly_sports(reservation: Reservation) -> bool:
+def verify_monthly_sports(reservation: Reservation, arena: Arena, user: User) -> bool:
     
-    arena = reservation.arena
-    user = reservation.user
     start_date = reservation.start_date
 
     now = datetime.now()
@@ -85,15 +85,15 @@ def verify_monthly_sports(reservation: Reservation) -> bool:
             return False
         else:
             return False
+    
 
 
 from datetime import datetime, time
 
 from datetime import time
 
-def is_valid_sports_schedule(reservation: Reservation) -> bool:
+def is_valid_sports_schedule(reservation: Reservation, arena: Arena) -> bool:
 
-    arena = reservation.arena
     start_time = reservation.start_date.time()
     start_weekday = reservation.start_date.weekday()
 
@@ -123,7 +123,7 @@ def is_valid_sports_schedule(reservation: Reservation) -> bool:
 def is_reservation_available(session: Session, reservation: Reservation) -> bool:
     
     existing_reservation = session.query(Reservation).filter(
-        Reservation.arena == reservation.arena,  
+        Reservation.arena_id == reservation.arena_id,  
         Reservation.start_date < reservation.end_date,
         Reservation.end_date > reservation.start_date
     ).first()
