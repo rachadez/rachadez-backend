@@ -3,11 +3,6 @@ import uuid
 from pydantic import EmailStr
 from fastapi import APIRouter, Query, HTTPException, Depends
 from sqlalchemy.exc import ProgrammingError
-from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
-from app.core.config import settings
-import jwt
-from app.core.security import ALGORITHM
-
 
 from app.api.services import user as user_service
 from app.api.models.user import (
@@ -119,7 +114,7 @@ def read_user_by_id(
     return user
 
 
-@router.get("/users/{user_email}", response_model=UserPublic)
+@router.get("/users/email/{user_email}", response_model=UserPublic)
 def read_user_by_email(
     user_email: EmailStr, session: SessionDep, current_user: CurrentUser
 ) -> Any:
@@ -238,6 +233,7 @@ def unblock_user(user_id: uuid.UUID, session: SessionDep):
     session.commit()
     return user
 
+<<<<<<< HEAD
 
 @router.get("/users/confirm/{token}", response_model=UserPublic)
 def confirm_email(token: str, session: SessionDep):
@@ -259,3 +255,5 @@ def confirm_email(token: str, session: SessionDep):
     session.commit()
 
     return user
+=======
+>>>>>>> 8a313760eed671f0768ab28f51bf0bc27d8a9a1c
