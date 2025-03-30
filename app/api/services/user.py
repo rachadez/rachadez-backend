@@ -85,6 +85,14 @@ def read_users(session: Session, offset: int, limit: int):
     return users
 
 
+def get_blocked_users(session: Session, offset: int, limit: int):
+    """
+    Retrieve blocked users.
+    """
+    users = session.exec(select(User).where(User.is_active == False)).all()
+    return users
+
+
 def update_user(*, session: Session, db_user: User, user_in: UserUpdate) -> Any:
     user_data = user_in.model_dump(exclude_unset=True)
     extra_data = {}
@@ -98,12 +106,14 @@ def update_user(*, session: Session, db_user: User, user_in: UserUpdate) -> Any:
     session.refresh(db_user)
     return db_user
 
+
 def active_user(*, session: Session, db_user: User) -> Any:
     db_user.is_active = True
     session.add(db_user)
     session.commit()
     session.refresh(db_user)
     return db_user
+
 
 def get_user_by_email(*, session: Session, email: str) -> User | None:
     statement = select(User).where(User.email == email)

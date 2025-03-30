@@ -2,7 +2,6 @@ from typing import Annotated, Any
 import uuid
 from pydantic import EmailStr
 from fastapi import APIRouter, Query, HTTPException, Depends
-from sqlmodel import select
 from sqlalchemy.exc import ProgrammingError
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from app.core.config import settings
@@ -25,11 +24,13 @@ from app.api.deps import (
     get_current_active_superuser,
 )
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(tags=["users"])
 
 
 @router.post(
-    "/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic
+    "/users/",
+    dependencies=[Depends(get_current_active_superuser)],
+    response_model=UserPublic,
 )
 def create_user(user_in: UserCreate, session: SessionDep) -> User | None:
     """
@@ -51,7 +52,7 @@ def create_user(user_in: UserCreate, session: SessionDep) -> User | None:
     return user_db
 
 
-@router.post("/signup", response_model=UserPublic)
+@router.post("/users/signup", response_model=UserPublic)
 def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     """
     Create new user without the need to be logged in.
@@ -80,7 +81,7 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
 
 
 @router.get(
-    "/",
+    "/users/",
     dependencies=[Depends(get_current_active_superuser)],
     response_model=list[UserPublic],
 )
@@ -94,7 +95,7 @@ def read_users(
     return users
 
 
-@router.get("/{user_id}", response_model=UserPublic)
+@router.get("/users/{user_id}", response_model=UserPublic)
 def read_user_by_id(
     user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
 ) -> Any:
@@ -118,7 +119,7 @@ def read_user_by_id(
     return user
 
 
-@router.get("/{user_email}", response_model=UserPublic)
+@router.get("/users/{user_email}", response_model=UserPublic)
 def read_user_by_email(
     user_email: EmailStr, session: SessionDep, current_user: CurrentUser
 ) -> Any:
@@ -143,7 +144,7 @@ def read_user_by_email(
 
 
 @router.patch(
-    "/{user_id}",
+    "/users/{user_id}",
     dependencies=[Depends(get_current_active_superuser)],
     response_model=UserPublic,
 )
@@ -172,7 +173,7 @@ def update_user(user_id: uuid.UUID, user_in: UserUpdate, session: SessionDep):
     return db_user
 
 
-@router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)])
+@router.delete("/users/{user_id}", dependencies=[Depends(get_current_active_superuser)])
 def delete_user(user_id: uuid.UUID, session: SessionDep):
     """
     Delete a user.
@@ -191,11 +192,13 @@ def delete_user(user_id: uuid.UUID, session: SessionDep):
     dependencies=[Depends(get_current_active_superuser)],
     response_model=list[UserPublic],
 )
-def get_blocked_users(session: SessionDep):
+def get_blocked_users(
+    session: SessionDep, offset: int = 0, limit: Annotated[int, Query(le=100)] = 100
+):
     """
     Retrieve blocked users.
     """
-    users = session.exec(select(User).where(not User.is_active)).all()
+    users = user_service.get_blocked_users(session=session, offset=offset, limit=limit)
     return users
 
 
@@ -236,7 +239,7 @@ def unblock_user(user_id: uuid.UUID, session: SessionDep):
     return user
 
 
-@router.get("/confirm/{token}", response_model=UserPublic)
+@router.get("/users/confirm/{token}", response_model=UserPublic)
 def confirm_email(token: str, session: SessionDep):
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
