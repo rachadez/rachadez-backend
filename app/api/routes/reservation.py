@@ -4,30 +4,47 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.api.models.user import User
 from sqlalchemy.orm import Session
 from app.api.deps import get_db, get_current_user
-from app.api.models.reservation import Reservation, ReservationUpdate
-from app.api.services.reservation import create_reservation, delete_reservation, update_reservation
+from app.api.models.reservation import Reservation, ReservationUpdate, ReservationResponse
+from app.api.services.reservation import create_reservation, delete_reservation, get_participants_by_reservation_id, update_reservation
 from app.api.models.reservation import ReservationCreate
 from app.core.db import get_session
 
 router = APIRouter(prefix="/reservations", tags=["reservations"])
 
-@router.post("/", response_model=Reservation)
+@router.post("/", response_model=ReservationResponse)
 def create_reservation_route(
     reservation_data: ReservationCreate,
     db: Session = Depends(get_db)
     ):
     try:
         reservation = create_reservation(db, reservation_data)
-        return reservation
-    except Exception as e:
+        participants = get_participants_by_reservation_id(db,reservation.id)
+        reservation_respose = ReservationResponse(
+                responsible_user_id = reservation.responsible_user_id,
+                arena_id = reservation.arena_id,
+                start_date = reservation.start_date,
+                end_date = reservation.end_date,
+                participants = participants,
+        )
+        return reservation_respose
+    except HTTPException as e:
         raise HTTPException(status_code=500, detail=f"Erro ao criar reserva: {str(e)}")
 
-@router.put("/{reservation_id}", response_model=Reservation)
-def update_reservation_route(reservation_id: int, updated_data: ReservationUpdate, db: Session = Depends(get_db)):
+@router.put("/{reservation_id}", response_model=ReservationResponse)
+def update_reservation_route(reservation_id: uuid.UUID, updated_data: ReservationUpdate, db: Session = Depends(get_db)):
     try:
-        updated_data_dict = updated_data.model_dump()  
-        reservation = update_reservation(db, reservation_id, updated_data_dict)
-        return reservation
+     
+        reservation = update_reservation(db, reservation_id, updated_data)
+        participants = get_participants_by_reservation_id(db,reservation_id)
+        reservation_respose = ReservationResponse(
+                responsible_user_id = reservation.responsible_user_id,
+                arena_id = reservation.arena_id,
+                start_date = reservation.start_date,
+                end_date = reservation.end_date,
+                participants = participants,
+        )
+        
+        return reservation_respose
     except HTTPException as e:
         raise HTTPException(status_code=500, detail=f"Erro ao editar a reserva: {str(e)}")
     

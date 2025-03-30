@@ -1,39 +1,41 @@
 from sqlmodel import Relationship, SQLModel, Field
-from typing import List, Optional
+from typing import Optional
 from datetime import datetime
-from sqlalchemy.orm import Mapped
 import uuid
 
 from app.api.models.reservationUserLink import ReservationUserLink
-
-
-
-
+from app.api.models.user import User
 
 # Modelo Base
 class ReservationBase(SQLModel):
-    responsible_user_id: Optional[uuid.UUID] = Field(default=None)
+    responsible_user_id: uuid.UUID = Field(default=None)
     arena_id: int | None = Field(default=None)
     start_date: datetime
     end_date: datetime
     made_on: datetime = Field(default_factory=datetime.utcnow)
     
-    
 
 # Modelo de Banco de Dados
 class Reservation(ReservationBase, table=True):
-    id: Optional[uuid.UUID] = Field(default_factory=uuid.uuid4, primary_key=True)
     participants: list["User"] = Relationship(back_populates="reservations", link_model=ReservationUserLink)
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
 
 # Modelo para criação de reserva
 class ReservationCreate(SQLModel):
-    responsible_user_id: Optional[uuid.UUID]
+    responsible_user_id: uuid.UUID
     arena_id: int 
     start_date: datetime
     end_date: datetime
-    participants: List[str] = Field(default=[]) 
+    participants: list[uuid.UUID] = Field(default=[]) 
 
 class ReservationUpdate(SQLModel):
     start_date: datetime
     end_date: datetime
-    participants: List[str] = Field(default=[])
+    participants: list[uuid.UUID] = Field(default=[])
+    
+class ReservationResponse(SQLModel):
+    responsible_user_id: uuid.UUID
+    arena_id: int 
+    start_date: datetime
+    end_date: datetime
+    participants: list[User] = Field(default=[]) 
