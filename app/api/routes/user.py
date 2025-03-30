@@ -51,6 +51,14 @@ def create_user(user_in: UserCreate, session: SessionDep) -> User | None:
     return user_db
 
 
+@router.get("/users/me", response_model=UserPublic)
+def read_user_me(current_user: CurrentUser) -> Any:
+    """
+    Get current user.
+    """
+    return current_user
+
+
 @router.post("/users/signup", response_model=UserPublic)
 def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     """
