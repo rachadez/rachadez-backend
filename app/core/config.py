@@ -14,5 +14,5 @@ class Settings:
     EMAILS_FROM_EMAIL: str = "rachadez10@gmail.com"
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False
-
+    CORS_ORIGINS: list[str] = ["http://localhost", "http://localhost:5173"]
 settings = Settings()
