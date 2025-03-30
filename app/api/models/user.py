@@ -1,3 +1,4 @@
+import datetime
 from typing import List
 import uuid
 from enum import Enum
@@ -23,6 +24,7 @@ class UserBase(SQLModel):
     is_admin: bool = False
     is_internal: bool = True
     full_name: str | None = Field(default=None, max_length=255)
+    #last_reservation: datetime = Field(default=None)
     
 # Properties to receive via API on creation
 class UserCreate(UserBase):
