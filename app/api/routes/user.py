@@ -38,13 +38,13 @@ def create_user(user_in: UserCreate, session: SessionDep) -> User | None:
     user_db = user_service.get_user_by_cpf(session=session, cpf=user_in.cpf)
     if user_db:
         raise HTTPException(
-            status_code=404, detail="The user with this CPF already exists."
+            status_code=404, detail="Já existe um usuário com esse CPF."
         )
 
     user_db = user_service.get_user_by_email(session=session, email=user_in.email)
     if user_db:
         raise HTTPException(
-            status_code=404, detail="The user with this email already exists."
+            status_code=404, detail="Já existe um usuário com esse e-mail."
         )
 
     user_db = user_service.create_user(session=session, user_create=user_in)
@@ -59,14 +59,14 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     user_db = user_service.get_user_by_cpf(session=session, cpf=user_in.cpf)
     if user_db:
         raise HTTPException(
-            status_code=404, detail="The user with this CPF already exists."
+            status_code=404, detail="Já existe um usuário com esse CPF."
         )
 
     user = user_service.get_user_by_email(session=session, email=user_in.email)
     if user:
         raise HTTPException(
             status_code=400,
-            detail="The user with this email already exists in the system",
+            detail="Já existe um usuário com esse e-mail.",
         )
     user_create = UserCreate.model_validate(user_in)
     try:
@@ -104,7 +104,7 @@ def read_user_by_id(
 
     user = session.get(User, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
 
     # Return my own user data
     if user == current_user:
@@ -113,7 +113,7 @@ def read_user_by_id(
     if not current_user.is_admin:
         raise HTTPException(
             status_code=403,
-            detail="The user doesn't have enough privileges",
+            detail="O usuário não tem permissão de administrador.",
         )
     return user
 
@@ -128,7 +128,7 @@ def read_user_by_email(
 
     user = user_service.get_user_by_email(email=user_email, session=session)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
 
     # Return my own user data
     if user == current_user:
@@ -137,7 +137,7 @@ def read_user_by_email(
     if not current_user.is_admin:
         raise HTTPException(
             status_code=403,
-            detail="The user doesn't have enough privileges",
+            detail="O usuário não tem permissão de administrador.",
         )
     return user
 
@@ -155,7 +155,7 @@ def update_user(user_id: uuid.UUID, user_in: UserUpdate, session: SessionDep):
     if not db_user:
         raise HTTPException(
             status_code=404,
-            detail="The user with this id does not exist",
+            detail="Não existe um usuário com esse id.",
         )
     if user_in.email:
         existing_user = user_service.get_user_by_email(
@@ -163,7 +163,7 @@ def update_user(user_id: uuid.UUID, user_in: UserUpdate, session: SessionDep):
         )
         if existing_user and existing_user.id != user_id:
             raise HTTPException(
-                status_code=409, detail="User with this email already exists"
+                status_code=409, detail="E-mail inválido. Já existe um usuário com esse e-mail."
             )
 
     db_user = user_service.update_user(
@@ -179,7 +179,7 @@ def delete_user(user_id: uuid.UUID, session: SessionDep):
     """
     user = session.get(User, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
     session.delete(user)
     session.commit()
     return {"ok": True}
@@ -213,7 +213,7 @@ def block_user(user_id: uuid.UUID, session: SessionDep):
     """
     user = session.get(User, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
     user.is_active = False
     session.add(user)
     session.commit()
@@ -231,7 +231,7 @@ def unblock_user(user_id: uuid.UUID, session: SessionDep):
     """
     user = session.get(User, user_id)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
     user.is_active = True
     session.add(user)
     session.commit()
@@ -244,14 +244,14 @@ def confirm_email(token: str, session: SessionDep):
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
         user_id = uuid.UUID(payload["sub"])
     except ExpiredSignatureError:
-        raise HTTPException(status_code=400, detail="Expired token")
+        raise HTTPException(status_code=400, detail="Token expirado.")
     except InvalidTokenError:
-        raise HTTPException(status_code=400, detail="Invalid token")
+        raise HTTPException(status_code=400, detail="Token inválido.")
 
     user = session.get(User, user_id)
 
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
 
     user.is_active = True
     session.add(user)

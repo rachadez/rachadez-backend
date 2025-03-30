@@ -30,7 +30,7 @@ def update_password(session: Session, id: str, new_password):
         session.commit()
         session.refresh(user)
     else:
-        raise HTTPException(status_code=404, detail=f"User with id {id} not found!")
+        raise HTTPException(status_code=404, detail=f"Usuário com o id {id} não encontrado")
 
 
 def authenticate(session: Session, email: str, password: str):

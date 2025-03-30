@@ -22,7 +22,7 @@ def get_arena(session: SessionDep, arena_id: int) -> Arena | None:
     if not arena:
         raise HTTPException(
             status_code=404,
-            detail="An arena with id %s not exists" % arena_id)
+            detail="Não existe uma arena com o id %s." % arena_id)
 
     return arena
 
@@ -33,7 +33,7 @@ def create_arena(session: SessionDep, arena: ArenaBase) -> Arena | None:
 
     if new_arena:
         raise HTTPException(
-            status_code=400, detail="An arena with this name already exists")
+            status_code=400, detail="Já existe uma arena com esse nome.")
 
     new_arena = arena_service.create_arena(session, arena)
 
@@ -48,7 +48,7 @@ def update_arena(session: SessionDep, arena_id: int,
     if not arena:
         raise HTTPException(
             status_code=404,
-            detail="An arena with id %s not exists" % arena_id)
+            detail="Não existe uma arena com o id %s." % arena_id)
 
     updated_arena = arena_service.update_arena(session, arena, arena_update)
 
@@ -62,7 +62,7 @@ def delete_arena(session: SessionDep, arena_id: int) -> None:
     if not arena:
         raise HTTPException(
             status_code=404,
-            detail="An arena with id %s not exists" % arena_id)
+            detail="Não existe uma arena com o id %s." % arena_id)
 
     arena_service.delete(session, arena)
     return None

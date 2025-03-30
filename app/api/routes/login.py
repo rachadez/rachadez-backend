@@ -37,9 +37,9 @@ def login(
     )
 
     if not user:
-        raise HTTPException(status_code=400, detail="Incorrect email or password")
+        raise HTTPException(status_code=400, detail="Email ou senha incorretos.")
     elif not user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise HTTPException(status_code=400, detail="Usuário inativo. Por favor, verifique seu e-mail para confirmar o seu cadastro.")
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return Token(
         access_token=security.create_access_token(
@@ -66,11 +66,11 @@ def recover_password(email: str, session: SessionDep) -> str:
     if not user:
         raise HTTPException(
             status_code=404,
-            detail="The user with this email does not exist in the system.",
+            detail="Não existe um usuário com esse email no sistema.",
         )
     password_reset_token = generate_password_reset_token(email=email)
     login_service.dispatch_reset_password_email(email=email, token=password_reset_token)
-    return "Password recovery email sent"
+    return "Email de recuperação de senha enviado."
 
 
 @router.post("/reset-password/")
@@ -80,20 +80,20 @@ def reset_password(session: SessionDep, body: NewPassword) -> str:
     """
     email = verify_password_reset_token(token=body.token)
     if not email:
-        raise HTTPException(status_code=400, detail="Invalid token")
+        raise HTTPException(status_code=400, detail="Token inválido.")
     user = user_service.get_user_by_email(session=session, email=email)
     if not user:
         raise HTTPException(
             status_code=404,
-            detail="The user with this email does not exist in the system.",
+            detail="Não existe um usuário com esse email no sistema.",
         )
     elif not user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise HTTPException(status_code=400, detail="Usuário inativo. Por favor, verifique seu e-mail para confirmar o seu cadastro.")
     hashed_password = get_password_hash(password=body.new_password)
     user.hashed_password = hashed_password
     session.add(user)
     session.commit()
-    return "Password updated successfully"
+    return "Senha atualizada com sucesso."
 
 @router.get("/login/confirm-email/{token}", response_model=UserPublic)
 def confirm_email(token: str, session: SessionDep):
@@ -101,14 +101,14 @@ def confirm_email(token: str, session: SessionDep):
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
         user_id = uuid.UUID(payload["sub"])
     except ExpiredSignatureError:
-        raise HTTPException(status_code=400, detail="Expired token")
+        raise HTTPException(status_code=400, detail="Token expirado.")
     except InvalidTokenError:
-        raise HTTPException(status_code=400, detail="Invalid token")
+        raise HTTPException(status_code=400, detail="Token inválido.")
 
     user = session.get(User, user_id)
 
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
 
     user.is_active = True
     session.add(user)
