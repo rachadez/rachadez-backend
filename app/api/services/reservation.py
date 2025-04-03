@@ -95,6 +95,9 @@ def update_reservation(session: Session, reservation_id: int, updated_data: Rese
         if value:
             setattr(reservation, key, value)
 
+    if not verify_end_date(reservation.start_date, reservation.end_date):
+            raise HTTPException(status_code=400, detail="Horario de inicio e fim Invalidos")
+    
     # Verifica se a nova data e horário são válidos
     if not is_valid_sports_schedule(reservation, arena):
         raise HTTPException(status_code=400, detail="Horário inválido para este tipo de arena.")
