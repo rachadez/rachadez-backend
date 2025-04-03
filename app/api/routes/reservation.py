@@ -61,7 +61,7 @@ def cancel_reservation_route(
     return delete_reservation(db=db, reservation_id=reservation_id, user_id=user_id, user=current_user)
 
 
-@router.get("/all", response_model=List[Reservation])
+@router.get("/all", response_model=List[ReservationResponse])
 def list_all_reservations(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -71,7 +71,20 @@ def list_all_reservations(
     
     try:
         reservations = db.query(Reservation).all()
-        return reservations
+        response = []
+        for r in reservations:
+            participants = get_participants_by_reservation_id(db,r.id)
+            reservation_respose = ReservationResponse(
+                id = r.id,
+                responsible_user_id = r.responsible_user_id,
+                arena_id = r.arena_id,
+                start_date = r.start_date,
+                end_date = r.end_date,
+                participants = participants,
+            )
+            response.append(reservation_respose)
+        
+        return response
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao listar reservas: {str(e)}")
     
