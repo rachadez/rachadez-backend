@@ -75,7 +75,7 @@ def list_all_reservations(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao listar reservas: {str(e)}")
     
-@router.get("/{user_id}", response_model=List[Reservation])
+@router.get("/{user_id}", response_model=List[ReservationResponse])
 def list_user_reservations(
     user_id: uuid.UUID,
     db: Session = Depends(get_db),
@@ -86,6 +86,45 @@ def list_user_reservations(
 
     try:
         reservations = db.query(Reservation).filter(Reservation.responsible_user_id == user_id).all()
-        return reservations
+        response = []
+        for r in reservations:
+            participants = get_participants_by_reservation_id(db,r.id)
+            reservation_respose = ReservationResponse(
+                id = r.id,
+                responsible_user_id = r.responsible_user_id,
+                arena_id = r.arena_id,
+                start_date = r.start_date,
+                end_date = r.end_date,
+                participants = participants,
+            )
+            response.append(reservation_respose)
+        
+        return response
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao listar reservas do usuário: {str(e)}")
+    
+
+@router.get("{user_id}/{reservation_id}", response_model=ReservationResponse)
+def get_reservation(
+    user_id: uuid.UUID,
+    reservation_id: uuid.UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if current_user.id != user_id and not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Acesso negado. Você só pode ver suas próprias reservas ou ser um administrador.")
+    
+    try:
+        reservation = db.query(Reservation).filter(Reservation.id == reservation_id).all()
+        participants = get_participants_by_reservation_id(db,reservation_id)
+        reservation_respose = ReservationResponse(
+                id = reservation[0].id,
+                responsible_user_id = reservation[0].responsible_user_id,
+                arena_id = reservation[0].arena_id,
+                start_date = reservation[0].start_date,
+                end_date = reservation[0].end_date,
+                participants = participants,
+        )
+        return reservation_respose
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao listar a reserva: {str(e)}")
