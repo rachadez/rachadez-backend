@@ -101,7 +101,7 @@ def is_valid_sports_schedule(reservation: Reservation, arena: Arena) -> bool:
 
     valid_times_weekly = [
         time(5, 30), time(7, 0), time(8, 30), time(10, 0), time(11, 30),
-        time(13, 0), time(14, 30), time(16, 0), time(17, 30)
+        time(13, 0), time(14, 30), time(16, 0), time(17, 30), time(19, 30)
     ]
     valid_times_society = [time(18, 0), time(19, 30)]
 
@@ -173,3 +173,7 @@ def generate_password_reset_token(email: str) -> str:
         algorithm=security.ALGORITHM,
     )
     return encoded_jwt
+
+
+def verify_end_date(start_date: datetime, end_date: datetime):
+    return end_date - start_date == timedelta(hours=1, minutes=30)

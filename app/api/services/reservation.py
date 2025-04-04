@@ -7,7 +7,7 @@ from app.api.deps import CurrentUser, SessionDep
 from app.api.models.reservationUserLink import ReservationUserLink
 from app.api.models.reservation import Reservation, ReservationCreate, ReservationUpdate
 from app.api.models.user import User
-from app.api.utils.utils import verify_monthly_sports, verify_weekly_sports, is_valid_sports_schedule, is_reservation_available
+from app.api.utils.utils import verify_monthly_sports, verify_weekly_sports, is_valid_sports_schedule, is_reservation_available, verify_end_date
 from app.api.models.arena import Arena
     
 def create_reservation(session: SessionDep, reservation_data: ReservationCreate):
@@ -39,6 +39,9 @@ def create_reservation(session: SessionDep, reservation_data: ReservationCreate)
         if not arena:
             raise HTTPException(status_code=400, detail="Arena inválida ou inexistente.")
         
+        if not verify_end_date(reservation.start_date, reservation.end_date):
+            raise HTTPException(status_code=400, detail="Horario de inicio e fim Invalidos")
+        
         if arena.type in ["BEACH_TENNIS", "TÊNIS"]:
             if not verify_weekly_sports(reservation, arena, user):
                 raise HTTPException(status_code=400, detail="Reserva ilegal para este esporte.")
@@ -47,7 +50,7 @@ def create_reservation(session: SessionDep, reservation_data: ReservationCreate)
                 raise HTTPException(status_code=400, detail="Reserva ilegal para este esporte.")
         
         if not is_valid_sports_schedule(reservation, arena):
-            raise HTTPException(status_code=400, detail="Reserva ilegal, horário não permitido.")
+            raise HTTPException(status_code=400, detail="Reserva ilegal, horário ou data não permitido.")
         
         if not is_reservation_available(session, reservation):
             raise HTTPException(status_code=400, detail="Já existe uma reserva nesse horário.")
@@ -92,6 +95,9 @@ def update_reservation(session: Session, reservation_id: int, updated_data: Rese
         if value:
             setattr(reservation, key, value)
 
+    if not verify_end_date(reservation.start_date, reservation.end_date):
+            raise HTTPException(status_code=400, detail="Horario de inicio e fim Invalidos")
+    
     # Verifica se a nova data e horário são válidos
     if not is_valid_sports_schedule(reservation, arena):
         raise HTTPException(status_code=400, detail="Horário inválido para este tipo de arena.")
