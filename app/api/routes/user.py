@@ -266,3 +266,11 @@ def confirm_email(token: str, session: SessionDep):
     session.commit()
 
     return user
+
+@router.get("/users/user-id/{email}")
+def get_user_id_by_email(email: str, session: SessionDep, user: CurrentUser):
+    db_user = user_service.get_user_by_email(session=session, email=email)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+    return {"user_id": db_user.id}
