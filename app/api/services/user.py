@@ -1,5 +1,6 @@
 import re
 from typing import Any
+import uuid
 from fastapi import HTTPException
 from pydantic import EmailStr
 from sqlmodel import Session, select
@@ -93,3 +94,15 @@ def get_user_by_cpf(*, session: Session, cpf: str) -> User | None:
     statement = select(User).where(User.cpf == cpf)
     session_user = session.exec(statement).first()
     return session_user
+
+def verify_user(*,session: Session, email: str):
+    user = get_user_by_email(session=session, email=email)
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+    
+    if not user.is_active:
+        raise HTTPException(status_code=404, detail="Usuário inativo ou bloqueado")
+    
+    return user
+    
