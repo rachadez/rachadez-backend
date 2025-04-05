@@ -56,6 +56,10 @@ def create_reservation(session: SessionDep, reservation_data: ReservationCreate)
         if not user.is_admin:
             if not is_reservation_available(session, reservation.arena_id, reservation.start_date, reservation.end_date):
                 raise HTTPException(status_code=400, detail="Já existe uma reserva nesse horário.")
+        else:
+            old_reservation = session.query(Reservation).filter(Reservation.arena_id == reservation.arena_id,Reservation.start_date < reservation.end_date, Reservation.end_date > reservation.start_date).first()
+            if old_reservation != None:
+                session.delete(old_reservation)
         
         # Adicionar e persistir a reserva
         session.add(reservation)
@@ -92,7 +96,6 @@ def update_reservation(session: Session, reservation_id: int, updated_data: Rese
     if not reservation:
         raise HTTPException(status_code=404, detail="Reserva não encontrada.")
 
-    
     for key, value in reservation_update.items():
         if value:
             setattr(reservation, key, value)
@@ -104,10 +107,14 @@ def update_reservation(session: Session, reservation_id: int, updated_data: Rese
     if not is_valid_sports_schedule(reservation, arena):
         raise HTTPException(status_code=400, detail="Horário inválido para este tipo de arena.")
 
-    # Verificar se o novo horário já está sendo usado
-    if is_reservation_available(session, reservation):
-        raise HTTPException(status_code=400, detail="Este horário já está sendo ocupado por outra reserva.")
-
+    if not user.is_admin:
+        if is_reservation_available(session, reservation):
+            raise HTTPException(status_code=400, detail="Este horário já está sendo ocupado por outra reserva.")
+    else:
+        old_reservation = session.query(Reservation).filter(Reservation.arena_id == reservation.arena_id,Reservation.start_date < reservation_update.end_date, Reservation.end_date > reservation_update.start_date).first()
+        if old_reservation != None:
+            session.delete(old_reservation)
+                
     if not verify_weekly_sports(reservation, arena, user):
         raise HTTPException(status_code=400, detail="Este horário não é válido para reservas semanais.")
     elif not verify_monthly_sports(reservation, arena, user):
