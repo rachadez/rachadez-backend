@@ -428,6 +428,45 @@ class TestUserRoutes:
             for error in response_data
         )
 
+    def test_singup_user_invalid_ocuppation(self, client): 
+
+        data = {
+            "email" : "user@ccc.ufcg.edu.br",
+            "password" : "senha1234",
+            "cpf" : "123456789123", # invalid CPF (more than 11 digits)
+            "phone" : "83911111111",
+            "occupation" : "INVALID OCCUPATION", # invalid occupation
+            "full_name" : "CPF inválido"
+        }
+
+        response = client.post(
+            USER_PREFIX + "/signup",
+            json=data
+        )
+
+        assert response.status_code == 422
+
+    def test_singup_user_invalid_phone(self, client): 
+
+        data = {
+            "email" : "user@ccc.ufcg.edu.br",
+            "password" : "senha1234",
+            "cpf" : "123456789123", # invalid CPF (more than 11 digits)
+            "phone" : "83911abc111",
+            "occupation" : "INVALID OCCUPATION", # invalid occupation
+            "full_name" : "CPF inválido"
+        }
+
+        response = client.post(
+            USER_PREFIX + "/signup",
+            json=data
+        )
+        
+        assert response.status_code == 422
+    
+
+    
+
 
 
 
