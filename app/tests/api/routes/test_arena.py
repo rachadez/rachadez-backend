@@ -37,7 +37,7 @@ class TestArenaRoutes():
         response = client.get(ARENA_PREFIX + "/1")
 
         assert response.status_code == 404
-        assert "not exists" in response.json()['detail']
+        assert "Não existe uma arena com o id 1." in response.json()['detail']
 
     def test_create_arena(self, client):
         data = {"name": "Society Teste",

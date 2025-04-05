@@ -402,6 +402,32 @@ class TestUserRoutes:
         assert response2.status_code == 400
         assert response2.json()["detail"] == "Já existe um usuário com esse CPF."
 
+    def test_singup_user_invalid_cpf1(self, client): 
+
+        data = {
+            "email" : "user@ccc.ufcg.edu.br",
+            "password" : "senha1234",
+            "cpf" : "123456789123", # invalid CPF (more than 11 digits)
+            "phone" : "83911111111",
+            "occupation" : "ALUNO",
+            "full_name" : "CPF inválido"
+        }
+
+        response = client.post(
+            USER_PREFIX + "/signup",
+            json=data
+        )
+
+
+        assert response.status_code == 422  # Validation error
+        response_data = response.json()["detail"]
+
+        assert any(
+            error["loc"] == ["body", "cpf"] and
+            error["msg"] == "String should have at most 11 characters"
+            for error in response_data
+        )
+
 
 
 
