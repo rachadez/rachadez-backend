@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone, time
+import uuid
 from fastapi import security
 from jwt.exceptions import InvalidTokenError
 from sqlalchemy.orm import Session
@@ -122,12 +123,12 @@ def is_valid_sports_schedule(reservation: Reservation, arena: Arena) -> bool:
     return False
   
 
-def is_reservation_available(session: Session, reservation: Reservation) -> bool:
+def is_reservation_available(session: Session, arena_id: uuid.UUID, start_date: datetime, end_date: datetime) -> bool:
     
     existing_reservation = session.query(Reservation).filter(
-        Reservation.arena_id == reservation.arena_id,  
-        Reservation.start_date < reservation.end_date,
-        Reservation.end_date > reservation.start_date
+        Reservation.arena_id == arena_id,  
+        Reservation.start_date < end_date,
+        Reservation.end_date > start_date
     ).first()
 
     return existing_reservation is None 

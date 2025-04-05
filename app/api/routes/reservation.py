@@ -1,3 +1,4 @@
+import datetime
 from typing import List
 import uuid
 from fastapi import APIRouter, Depends, HTTPException
@@ -8,6 +9,7 @@ from app.api.models.reservation import Reservation, ReservationUpdate, Reservati
 from app.api.services.reservation import create_reservation, delete_reservation, get_participants_by_reservation_id, update_reservation
 from app.api.models.reservation import ReservationCreate
 from app.core.db import get_session
+from app.api.utils.utils import is_reservation_available
 
 router = APIRouter(prefix="/reservations", tags=["reservations"])
 
@@ -141,3 +143,17 @@ def get_reservation(
         return reservation_respose
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao listar a reserva: {str(e)}")
+    
+    
+@router.get("/arena/{arena_id}/{start_date}/{end_date}", response_model=bool)
+def verify_date_arena(
+  arena_id: uuid.UUID,
+  start_date: datetime,
+  end_date: datetime,
+  session: SessionDep,  
+):
+    
+    try:
+        return is_reservation_available(session=session, arena_id=arena_id, start_date=start_date, end_date=end_date)
+    except Exception as e:
+        return str(e)

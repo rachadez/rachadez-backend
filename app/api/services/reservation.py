@@ -29,9 +29,10 @@ def create_reservation(session: SessionDep, reservation_data: ReservationCreate)
             participants=lista_de_usuarios,
         )
         
-        # Verificar a arena e o usuário responsável
         arena = session.get(Arena, reservation.arena_id)
         user = session.get(User, reservation.responsible_user_id)
+        
+        
         
         #if not is_previous_week(user.last_reservation):
         #    raise HTTPException(status_code=400, detail="Esse Usuario ainda não esta disponivel para fazer uma reserva")
@@ -52,8 +53,9 @@ def create_reservation(session: SessionDep, reservation_data: ReservationCreate)
         if not is_valid_sports_schedule(reservation, arena):
             raise HTTPException(status_code=400, detail="Reserva ilegal, horário ou data não permitido.")
         
-        if not is_reservation_available(session, reservation):
-            raise HTTPException(status_code=400, detail="Já existe uma reserva nesse horário.")
+        if not user.is_admin:
+            if not is_reservation_available(session, reservation.arena_id, reservation.start_date, reservation.end_date):
+                raise HTTPException(status_code=400, detail="Já existe uma reserva nesse horário.")
         
         # Adicionar e persistir a reserva
         session.add(reservation)
