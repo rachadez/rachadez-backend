@@ -117,7 +117,7 @@ def list_user_reservations(
         raise HTTPException(status_code=500, detail=f"Erro ao listar reservas do usuário: {str(e)}")
     
 
-@router.get("{user_id}/{reservation_id}", response_model=ReservationResponse)
+@router.get("/{user_id}/{reservation_id}", response_model=ReservationResponse)
 def get_reservation(
     user_id: uuid.UUID,
     reservation_id: uuid.UUID,
@@ -130,7 +130,7 @@ def get_reservation(
     try:
         reservation = db.query(Reservation).filter(Reservation.id == reservation_id).all()
         participants = get_participants_by_reservation_id(db,reservation_id)
-        reservation_respose = ReservationResponse(
+        reservation_response = ReservationResponse(
                 id = reservation[0].id,
                 responsible_user_id = reservation[0].responsible_user_id,
                 arena_id = reservation[0].arena_id,
@@ -138,6 +138,6 @@ def get_reservation(
                 end_date = reservation[0].end_date,
                 participants = participants,
         )
-        return reservation_respose
+        return reservation_response
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao listar a reserva: {str(e)}")
