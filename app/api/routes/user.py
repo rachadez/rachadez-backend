@@ -38,13 +38,13 @@ def create_user(user_in: UserCreate, session: SessionDep) -> User | None:
     user_db = user_service.get_user_by_cpf(session=session, cpf=user_in.cpf)
     if user_db:
         raise HTTPException(
-            status_code=404, detail="Já existe um usuário com esse CPF."
+            status_code=400, detail="Já existe um usuário com esse CPF."
         )
 
     user_db = user_service.get_user_by_email(session=session, email=user_in.email)
     if user_db:
         raise HTTPException(
-            status_code=404, detail="Já existe um usuário com esse e-mail."
+            status_code=400, detail="Já existe um usuário com esse e-mail."
         )
 
     user_db = user_service.create_user(session=session, user_create=user_in)
@@ -67,7 +67,7 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     user_db = user_service.get_user_by_cpf(session=session, cpf=user_in.cpf)
     if user_db:
         raise HTTPException(
-            status_code=404, detail="Já existe um usuário com esse CPF."
+            status_code=400, detail="Já existe um usuário com esse CPF."
         )
 
     user = user_service.get_user_by_email(session=session, email=user_in.email)
