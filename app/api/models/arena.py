@@ -1,3 +1,4 @@
+from typing import Optional
 from enum import Enum
 
 from sqlmodel import Field, SQLModel
@@ -26,7 +27,8 @@ class ArenasPublic(SQLModel):
     count: int
 
 
-class ArenaUpdate(ArenaBase):
-    name: str = Field(default=None)
-    description: str = Field(default=None)
-    capacity: int = Field(default=None)
+class ArenaUpdate(SQLModel):
+    name: Optional[str] = Field(default=None)
+    description: Optional[str] = Field(default=None)
+    capacity: Optional[int] = Field(default=None)
+    type: Optional[ArenaType] = Field(default=None)
