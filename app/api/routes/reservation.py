@@ -16,7 +16,8 @@ router = APIRouter(prefix="/reservations", tags=["reservations"])
 @router.post("/", response_model=ReservationResponse)
 def create_reservation_route(
     reservation_data: ReservationCreate,
-    db: SessionDep
+    db: SessionDep,
+    current_user: User = Depends(get_current_user)
     ):
     try:
         reservation = create_reservation(db, reservation_data)
@@ -119,7 +120,7 @@ def list_user_reservations(
         raise HTTPException(status_code=500, detail=f"Erro ao listar reservas do usuário: {str(e)}")
     
 
-@router.get("{user_id}/{reservation_id}", response_model=ReservationResponse)
+@router.get("/{user_id}/{reservation_id}", response_model=ReservationResponse)
 def get_reservation(
     user_id: uuid.UUID,
     reservation_id: uuid.UUID,
@@ -132,7 +133,7 @@ def get_reservation(
     try:
         reservation = db.query(Reservation).filter(Reservation.id == reservation_id).all()
         participants = get_participants_by_reservation_id(db,reservation_id)
-        reservation_respose = ReservationResponse(
+        reservation_response = ReservationResponse(
                 id = reservation[0].id,
                 responsible_user_id = reservation[0].responsible_user_id,
                 arena_id = reservation[0].arena_id,
@@ -140,16 +141,17 @@ def get_reservation(
                 end_date = reservation[0].end_date,
                 participants = participants,
         )
-        return reservation_respose
+        return reservation_response
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao listar a reserva: {str(e)}")
     
     
 @router.post("/arena/{arena_id}", response_model=bool)
 def verify_date_arena(
-    arena_id: uuid.UUID,
+    arena_id: int,
     dates: ReservationDates,
     session: SessionDep,
+    current_user: User = Depends(get_current_user)
 ):
     try:
         return is_reservation_available(

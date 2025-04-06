@@ -7,7 +7,7 @@ from app.api.deps import CurrentUser, SessionDep
 from app.api.models.reservationUserLink import ReservationUserLink
 from app.api.models.reservation import Reservation, ReservationCreate, ReservationUpdate
 from app.api.models.user import User
-from app.api.utils.utils import verify_monthly_sports, verify_weekly_sports, is_valid_sports_schedule, is_reservation_available, verify_end_date
+from app.api.utils.utils import verify_last_reservation, verify_monthly_sports, verify_weekly_sports, is_valid_sports_schedule, is_reservation_available, verify_end_date
 from app.api.models.arena import Arena
     
 def create_reservation(session: SessionDep, reservation_data: ReservationCreate):
@@ -34,9 +34,6 @@ def create_reservation(session: SessionDep, reservation_data: ReservationCreate)
         
         
         
-        #if not is_previous_week(user.last_reservation):
-        #    raise HTTPException(status_code=400, detail="Esse Usuario ainda não esta disponivel para fazer uma reserva")
-        
         if not arena:
             raise HTTPException(status_code=400, detail="Arena inválida ou inexistente.")
         
@@ -56,15 +53,22 @@ def create_reservation(session: SessionDep, reservation_data: ReservationCreate)
         if not user.is_admin:
             if not is_reservation_available(session, reservation.arena_id, reservation.start_date, reservation.end_date):
                 raise HTTPException(status_code=400, detail="Já existe uma reserva nesse horário.")
+            verify_last_reservation(arena, user, reservation.start_date)
+            
+                
         else:
             old_reservation = session.query(Reservation).filter(Reservation.arena_id == reservation.arena_id,Reservation.start_date < reservation.end_date, Reservation.end_date > reservation.start_date).first()
             if old_reservation != None:
                 session.delete(old_reservation)
+                
+        
+        
         
         # Adicionar e persistir a reserva
-        session.add(reservation)
+        session.add_all([reservation, user])
         session.commit()
         session.refresh(reservation)
+        session.refresh(user)
         
         return reservation
     
@@ -119,6 +123,7 @@ def update_reservation(session: Session, reservation_id: int, updated_data: Rese
         raise HTTPException(status_code=400, detail="Este horário não é válido para reservas semanais.")
     elif not verify_monthly_sports(reservation, arena, user):
         raise HTTPException(status_code=400, detail="Este horário não é válido para reservas mensais.")
+    
 
     session.add(reservation)
     session.commit()
