@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone, time
-from fastapi import security
+from app.core import security
 from jwt.exceptions import InvalidTokenError
 from sqlalchemy.orm import Session
 import jwt
@@ -11,9 +11,6 @@ from app.api.models.reservation import Reservation
 from app.api.models.user import User
 from app.core.config import settings
 from app.api.models.arena import Arena
-
-
-
 
 
 def send_email(*, email_to: str, subject: str, content: str):
