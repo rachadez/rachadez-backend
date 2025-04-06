@@ -4,21 +4,23 @@ from fastapi import APIRouter, HTTPException, Depends
 
 from app.api.models.arena import Arena, ArenaBase, ArenaUpdate
 from app.api.services import arena as arena_service
-from app.api.deps import get_current_active_superuser
+from app.api.deps import (
+    get_current_active_superuser,
+    CurrentUser
+    )
 from app.core.db import SessionDep
 
 
 router = APIRouter(prefix="/arenas", tags=["arenas"])
 
 
-@router.get("/", dependencies=[Depends(get_current_active_superuser)])
-def get_arenas(session: SessionDep, offset: int = 0, limit: int = 100) -> Any:
+@router.get("/")
+def get_arenas(session: SessionDep, current_user: CurrentUser, offset: int = 0, limit: int = 100) -> Any:
     return arena_service.get_arenas(session, offset, limit)
 
 
-@router.get("/{arena_id}",
-            dependencies=[Depends(get_current_active_superuser)])
-def get_arena(session: SessionDep, arena_id: int) -> Arena | None:
+@router.get("/{arena_id}")
+def get_arena(session: SessionDep, arena_id: int, current_user: CurrentUser) -> Arena | None:
     arena = arena_service.get_arena_by_id(session, arena_id)
 
     if not arena:
