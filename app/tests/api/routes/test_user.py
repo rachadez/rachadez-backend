@@ -580,3 +580,59 @@ class TestUserRoutes:
 
         assert first_response.json()["email"] == setUp.email
         assert second_response.json()["email"] == "francisnaldo@example.ufcg.edu.br"
+
+    def test_block_user_by_id(
+        self, client, setUp, admin_access_token, user_access_token
+    ):
+        get_users_response = client.get(
+            USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
+        )
+
+        assert get_users_response.status_code == 200
+
+        # The second user created is a normal user, and the first one is the admin himself
+        second_user_id = get_users_response.json()[1]["id"]
+
+        response = client.patch(
+            f"/v1/block/{second_user_id}",
+            headers={"Authorization": f"Bearer {admin_access_token}"},
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {"ok": True}
+
+        get_user_response = client.get(
+            USER_PREFIX + f"/{second_user_id}",
+            headers={"Authorization": f"Bearer {admin_access_token}"},
+        )
+
+        assert get_user_response.status_code == 200
+        assert get_user_response.json()["is_active"] is False
+
+    def test_block_user_by_id_without_privileges(
+        self, client, setUp, admin_access_token, user_access_token
+    ):
+        get_users_response = client.get(
+            USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
+        )
+
+        assert get_users_response.status_code == 200
+
+        # The second user created is a normal user, and the first one is the admin himself
+        second_user_id = get_users_response.json()[1]["id"]
+
+        response = client.patch(
+            f"/v1/block/{second_user_id}",
+            headers={"Authorization": f"Bearer {user_access_token}"},
+        )
+
+        assert response.status_code == 403
+        assert response.json()["detail"] == "O usuário não tem privilégios suficientes"
+
+        get_user_response = client.get(
+            USER_PREFIX + f"/{second_user_id}",
+            headers={"Authorization": f"Bearer {admin_access_token}"},
+        )
+
+        assert get_user_response.status_code == 200
+        assert get_user_response.json()["is_active"] is True
