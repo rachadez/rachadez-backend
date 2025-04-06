@@ -77,16 +77,16 @@ def user_access_token(db_session, client):
 
 class TestUserRoutes:
     def test_login_access_success(self, client, setUp):
-    response = client.post(
-        "/v1/login/access-token",
-        data={
-            "username": setUp.email,
-            "password": "admin password",
-        },
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
-    )
+        response = client.post(
+            "/v1/login/access-token",
+            data={
+                "username": setUp.email,
+                "password": "admin password",
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
 
-    assert response.status_code == 200
+        assert response.status_code == 200
 
     def test_login_access_incorrect_email(self, client, setUp):
         response = client.post(
