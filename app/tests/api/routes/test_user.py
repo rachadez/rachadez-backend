@@ -11,7 +11,7 @@ USER_PREFIX = "/v1/users"
 
 
 @pytest.fixture
-def setUp(db_session, client):
+def setup_admin_user(db_session, client):
     user = User(
         full_name="Administrador",
         email="admin@example.ufcg.edu.br",
@@ -33,11 +33,11 @@ def setUp(db_session, client):
 
 
 @pytest.fixture
-def admin_access_token(client, setUp):
+def admin_access_token(client, setup_admin_user):
     response = client.post(
         "/v1/login/access-token",
         data={
-            "username": setUp.email,
+            "username": setup_admin_user.email,
             "password": "admin password",
         },
     )
@@ -76,11 +76,11 @@ def user_access_token(db_session, client):
 
 
 class TestUserRoutes:
-    def test_login_access_success(self, client, setUp):
+    def test_login_access_success(self, client, setup_admin_user):
         response = client.post(
             "/v1/login/access-token",
             data={
-                "username": setUp.email,
+                "username": setup_admin_user.email,
                 "password": "admin password",
             },
             headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -88,7 +88,7 @@ class TestUserRoutes:
 
         assert response.status_code == 200
 
-    def test_login_access_incorrect_email(self, client, setUp):
+    def test_login_access_incorrect_email(self, client, setup_admin_user):
         response = client.post(
             "/v1/login/access-token",
             data={
@@ -101,11 +101,11 @@ class TestUserRoutes:
         assert response.status_code == 400, response.text
         assert response.json()["detail"] == "Email ou senha incorretos."
 
-    def test_login_access_incorrect_password(self, client, setUp):
+    def test_login_access_incorrect_password(self, client, setup_admin_user):
         response = client.post(
             "/v1/login/access-token",
             data={
-                "username": setUp.email,
+                "username": setup_admin_user.email,
                 "password": "senha incorreta",
             },
             headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -113,8 +113,8 @@ class TestUserRoutes:
 
         assert response.status_code == 400, response.text
         assert response.json()["detail"] == "Email ou senha incorretos."
-    
-    def test_get_users(self, client, setUp, admin_access_token):
+
+    def test_get_users(self, client, setup_admin_user, admin_access_token):
         response = client.get(
             USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
         )
@@ -122,7 +122,9 @@ class TestUserRoutes:
         assert response.status_code == 200
         assert response.json()[0]["email"] == "admin@example.ufcg.edu.br"
 
-    def test_get_users_without_privileges(self, client, setUp, user_access_token):
+    def test_get_users_without_privileges(
+        self, client, setup_admin_user, user_access_token
+    ):
         response = client.get(
             USER_PREFIX + "/", headers={"Authorization": f"Bearer {user_access_token}"}
         )
@@ -130,7 +132,7 @@ class TestUserRoutes:
         assert response.status_code == 403
         assert response.json()["detail"] == "O usuário não tem privilégios suficientes"
 
-    def test_get_user_by_id(self, client, setUp, admin_access_token):
+    def test_get_user_by_id(self, client, setup_admin_user, admin_access_token):
         get_users_response = client.get(
             USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
         )
@@ -146,7 +148,7 @@ class TestUserRoutes:
         assert response.status_code == 200
 
     def test_get_user_by_id_without_privileges(
-        self, client, setUp, admin_access_token, user_access_token
+        self, client, setup_admin_user, admin_access_token, user_access_token
     ):
         get_users_response = client.get(
             USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
@@ -166,7 +168,7 @@ class TestUserRoutes:
         )
 
     def test_get_user_by_email(
-        self, client, setUp, admin_access_token, user_access_token
+        self, client, setup_admin_user, admin_access_token, user_access_token
     ):
         get_users_response = client.get(
             USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
@@ -191,7 +193,9 @@ class TestUserRoutes:
 
         assert second_response.status_code == 200
 
-    def test_get_user_by_email_not_exists(self, client, setUp, admin_access_token):
+    def test_get_user_by_email_not_exists(
+        self, client, setup_admin_user, admin_access_token
+    ):
         get_users_response = client.get(
             USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
         )
@@ -207,7 +211,7 @@ class TestUserRoutes:
         assert response.json()["detail"] == "Usuário não encontrado."
 
     def test_get_user_by_email_without_privileges(
-        self, client, setUp, admin_access_token, user_access_token
+        self, client, setup_admin_user, admin_access_token, user_access_token
     ):
         get_users_response = client.get(
             USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
@@ -234,16 +238,20 @@ class TestUserRoutes:
         # So, the status code should be 200
         assert second_response.status_code == 200
 
-    def test_get_current_user_as_admin(self, client, setUp, admin_access_token):
+    def test_get_current_user_as_admin(
+        self, client, setup_admin_user, admin_access_token
+    ):
         response = client.get(
             USER_PREFIX + "/me",
             headers={"Authorization": f"Bearer {admin_access_token}"},
         )
 
         assert response.status_code == 200
-        assert response.json()["email"] == setUp.email
+        assert response.json()["email"] == setup_admin_user.email
 
-    def test_get_current_user_as_user(self, client, setUp, user_access_token):
+    def test_get_current_user_as_user(
+        self, client, setup_admin_user, user_access_token
+    ):
         response = client.get(
             USER_PREFIX + "/me",
             headers={"Authorization": f"Bearer {user_access_token}"},
@@ -252,7 +260,9 @@ class TestUserRoutes:
         assert response.status_code == 200
         assert response.json()["email"] == "francisnaldo@example.ufcg.edu.br"
 
-    def test_get_user_by_id_not_exists(self, client, setUp, admin_access_token):
+    def test_get_user_by_id_not_exists(
+        self, client, setup_admin_user, admin_access_token
+    ):
         random_uuid = uuid.uuid4()
         response = client.get(
             USER_PREFIX + f"/{random_uuid}",
@@ -262,7 +272,7 @@ class TestUserRoutes:
         assert response.status_code == 404
         assert response.json()["detail"] == "Usuário não encontrado."
 
-    def test_create_internal_user(self, client, setUp, admin_access_token):
+    def test_create_internal_user(self, client, setup_admin_user, admin_access_token):
         data = {
             "email": "user@example.ufcg.edu.br",
             "cpf": "80513586160",
@@ -303,7 +313,7 @@ class TestUserRoutes:
         assert created.json()["email"] == data["email"]
 
     def test_create_internal_user_without_privileges(
-        self, client, setUp, user_access_token
+        self, client, setup_admin_user, user_access_token
     ):
         data = {
             "email": "user@example.ufcg.edu.br",
@@ -331,7 +341,7 @@ class TestUserRoutes:
         assert response.json()["detail"] == "O usuário não tem privilégios suficientes"
 
     def test_create_internal_user_email_already_exist(
-        self, client, setUp, admin_access_token
+        self, client, setup_admin_user, admin_access_token
     ):
         data = {
             "email": "user@example.ufcg.edu.br",
@@ -386,7 +396,7 @@ class TestUserRoutes:
         )
 
     def test_create_internal_user_cpf_already_exist(
-        self, client, setUp, admin_access_token
+        self, client, setup_admin_user, admin_access_token
     ):
         data = {
             "email": "user@example.ufcg.edu.br",
@@ -440,7 +450,7 @@ class TestUserRoutes:
             == "Já existe um usuário com esse CPF."
         )
 
-    def test_signup(self, client, setUp):
+    def test_signup(self, client, setup_admin_user):
         data = {
             "email": "user@ccc.ufcg.edu.br",
             "password": "senha1234",
@@ -456,7 +466,7 @@ class TestUserRoutes:
         assert data["email"] == response.json()["email"]
         assert "id" in response.json()
 
-    def test_signup_user_email_already_exist(self, client, setUp):
+    def test_signup_user_email_already_exist(self, client, setup_admin_user):
         data = {
             "email": "user@ccc.ufcg.edu.br",
             "password": "senha1234",
@@ -489,7 +499,7 @@ class TestUserRoutes:
             == "Já existe um usuário com esse e-mail."
         )
 
-    def test_signup_user_cpf_already_exist(self, client, setUp):
+    def test_signup_user_cpf_already_exist(self, client, setup_admin_user):
         data = {
             "email": "user@ccc.ufcg.edu.br",
             "password": "senha1234",
@@ -572,7 +582,7 @@ class TestUserRoutes:
         assert response.status_code == 422
 
     def test_block_user_by_id(
-        self, client, setUp, admin_access_token, user_access_token
+        self, client, setup_admin_user, admin_access_token, user_access_token
     ):
         get_users_response = client.get(
             USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
@@ -600,7 +610,7 @@ class TestUserRoutes:
         assert get_user_response.json()["is_active"] is False
 
     def test_block_user_by_id_without_privileges(
-        self, client, setUp, admin_access_token, user_access_token
+        self, client, setup_admin_user, admin_access_token, user_access_token
     ):
         get_users_response = client.get(
             USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
@@ -627,7 +637,9 @@ class TestUserRoutes:
         assert get_user_response.status_code == 200
         assert get_user_response.json()["is_active"] is True
 
-    def test_block_user_by_id_not_exists(self, client, setUp, admin_access_token):
+    def test_block_user_by_id_not_exists(
+        self, client, setup_admin_user, admin_access_token
+    ):
         random_uuid = uuid.uuid4()
         response = client.patch(
             f"/v1/block/{random_uuid}",
@@ -638,7 +650,7 @@ class TestUserRoutes:
         assert response.json()["detail"] == "Usuário não encontrado."
 
     def test_unblock_user_by_id(
-        self, client, setUp, admin_access_token, user_access_token
+        self, client, setup_admin_user, admin_access_token, user_access_token
     ):
         get_users_response = client.get(
             USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
@@ -682,7 +694,7 @@ class TestUserRoutes:
         assert get_user_response.json()["is_active"] is True
 
     def test_unblock_user_by_id_without_privileges(
-        self, client, setUp, admin_access_token, user_access_token
+        self, client, setup_admin_user, admin_access_token, user_access_token
     ):
         data = {
             "email": "user@ccc.ufcg.edu.br",
@@ -739,7 +751,7 @@ class TestUserRoutes:
         assert get_user_response.json()["is_active"] is False
 
     def test_unblock_user_himself(
-        self, client, setUp, admin_access_token, user_access_token
+        self, client, setup_admin_user, admin_access_token, user_access_token
     ):
         get_users_response = client.get(
             USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
@@ -783,7 +795,7 @@ class TestUserRoutes:
         assert get_user_response.json()["is_active"] is False
 
     def test_unblock_user_by_id_not_exists(
-        self, client, setUp, admin_access_token, user_access_token
+        self, client, setup_admin_user, admin_access_token, user_access_token
     ):
         random_uuid = uuid.uuid4()
         block_response = client.patch(
@@ -795,7 +807,7 @@ class TestUserRoutes:
         assert block_response.json()["detail"] == "Usuário não encontrado."
 
     def test_get_blocked_users(
-        self, client, setUp, admin_access_token, user_access_token
+        self, client, setup_admin_user, admin_access_token, user_access_token
     ):
         get_users_response = client.get(
             USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
@@ -831,7 +843,7 @@ class TestUserRoutes:
         assert response.json()[0]["email"] == "francisnaldo@example.ufcg.edu.br"
 
     def test_get_blocked_users_without_privileges(
-        self, client, setUp, admin_access_token, user_access_token
+        self, client, setup_admin_user, admin_access_token, user_access_token
     ):
         data = {
             "email": "user@ccc.ufcg.edu.br",
@@ -888,7 +900,7 @@ class TestUserRoutes:
         assert get_user_response.json()["is_active"] is False
 
     def test_get_user_id_by_email_with_privileges(
-        self, client, setUp, admin_access_token, user_access_token
+        self, client, setup_admin_user, admin_access_token, user_access_token
     ):
         get_users_response = client.get(
             USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
@@ -910,7 +922,7 @@ class TestUserRoutes:
         assert response.json()["user_id"] == user_id
 
     def test_get_user_id_by_email_without_privileges(
-        self, client, setUp, admin_access_token, user_access_token
+        self, client, setup_admin_user, admin_access_token, user_access_token
     ):
         get_users_response = client.get(
             USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
@@ -932,7 +944,7 @@ class TestUserRoutes:
         assert response.json()["user_id"] == user_id
 
     def test_get_user_id_by_email_user_inactive(
-        self, client, setUp, admin_access_token, user_access_token
+        self, client, setup_admin_user, admin_access_token, user_access_token
     ):
         # This user is created but he's not active
         data = {
@@ -967,7 +979,9 @@ class TestUserRoutes:
         assert response.status_code == 400
         assert response.json()["detail"] == "Usuário inativo ou bloqueado"
 
-    def test_get_user_id_by_email_not_exists(self, client, setUp, user_access_token):
+    def test_get_user_id_by_email_not_exists(
+        self, client, setup_admin_user, user_access_token
+    ):
         response = client.get(
             USER_PREFIX + "/user-id/fake_email@example.ufcg.edu.br",
             headers={"Authorization": f"Bearer {user_access_token}"},
