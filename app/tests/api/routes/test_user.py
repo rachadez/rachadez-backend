@@ -44,6 +44,36 @@ def admin_access_token(client, setUp):
     return response.json()["access_token"]
 
 
+@pytest.fixture
+def user_access_token(db_session, client):
+    user = User(
+        full_name="Francisnaldo",
+        email="francisnaldo@example.ufcg.edu.br",
+        cpf="12345678123",
+        phone="83911223344",
+        occupation=Occupation.ALUNO,
+        hashed_password=get_password_hash(password="francisnaldo password"),
+        is_active=True,
+        is_admin=False,
+        is_internal=True,
+        reservations=[],
+    )
+
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    response = client.post(
+        "/v1/login/access-token",
+        data={
+            "username": "francisnaldo@example.ufcg.edu.br",
+            "password": "francisnaldo password",
+        },
+    )
+
+    return response.json()["access_token"]
+
+
 class TestUserRoutes:
     def test_login_access_success(self, client, setUp):
         response = client.post(
@@ -106,7 +136,7 @@ class TestUserRoutes:
 
         assert response.status_code == 200
 
-    def test_get_current_user(self, client, setUp, admin_access_token):
+    def test_get_current_user_as_admin(self, client, setUp, admin_access_token):
         response = client.get(
             USER_PREFIX + "/me",
             headers={"Authorization": f"Bearer {admin_access_token}"},
@@ -114,6 +144,15 @@ class TestUserRoutes:
 
         assert response.status_code == 200
         assert response.json()["email"] == setUp.email
+
+    def test_get_current_user_as_user(self, client, setUp, user_access_token):
+        response = client.get(
+            USER_PREFIX + "/me",
+            headers={"Authorization": f"Bearer {user_access_token}"},
+        )
+
+        assert response.status_code == 200
+        assert response.json()["email"] == "francisnaldo@example.ufcg.edu.br"
 
     def test_get_user_not_exists(self, client, setUp, admin_access_token):
         random_uuid = uuid.uuid4()
