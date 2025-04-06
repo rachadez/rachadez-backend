@@ -102,7 +102,7 @@ def verify_user(*,session: Session, email: str):
         raise HTTPException(status_code=404, detail="Usuário não encontrado.")
     
     if not user.is_active:
-        raise HTTPException(status_code=404, detail="Usuário inativo ou bloqueado")
+        raise HTTPException(status_code=400, detail="Usuário inativo ou bloqueado")
     
     return user
     
