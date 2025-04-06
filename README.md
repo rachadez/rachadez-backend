@@ -44,6 +44,9 @@ poetry install
 │   │   ├── __init__.py
 │   │   └── example.py
 │   └── routes -> Package with API routes. The files must sent request to service execute.
+│   |   ├── __init__.py
+│   |   └── example.py
+|   └── utils -> Package with utils functions. services and routes could use this directory.
 │       ├── __init__.py
 │       └── example.py
 ├── core -> Core files to the project such as db connection and configuration variables.
