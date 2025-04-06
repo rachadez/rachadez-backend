@@ -14,7 +14,6 @@ from app.core import security
 from app.api.models.reservation import Reservation
 from app.api.models.user import User
 from app.core.config import settings
-from app.api.models.user import User
 from app.api.models.arena import Arena
 from app.api.models.reservation import Reservation
 
@@ -246,4 +245,3 @@ def verify_last_reservation_weekly(
         )
 
     return True
-
