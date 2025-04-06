@@ -1,6 +1,7 @@
 import pytest
 import uuid
 
+from app.api.models import user
 from app.api.models.user import User, Occupation
 from app.core.security import get_password_hash
 from app.tests.api.base import client, db_session, setup_db
@@ -121,6 +122,14 @@ class TestUserRoutes:
         assert response.status_code == 200
         assert response.json()[0]["email"] == "admin@example.ufcg.edu.br"
 
+    def test_get_users_without_privileges(self, client, setUp, user_access_token):
+        response = client.get(
+            USER_PREFIX + "/", headers={"Authorization": f"Bearer {user_access_token}"}
+        )
+
+        assert response.status_code == 403
+        assert response.json()["detail"] == "O usuário não tem privilégios suficientes"
+
     def test_get_user(self, client, setUp, admin_access_token):
         get_users_response = client.get(
             USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
@@ -135,6 +144,26 @@ class TestUserRoutes:
         )
 
         assert response.status_code == 200
+
+    def test_get_user_without_privileges(
+        self, client, setUp, admin_access_token, user_access_token
+    ):
+        get_users_response = client.get(
+            USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
+        )
+
+        first_user_id = get_users_response.json()[0]["id"]
+
+        assert get_users_response.status_code == 200
+        response = client.get(
+            USER_PREFIX + f"/{first_user_id}",
+            headers={"Authorization": f"Bearer {user_access_token}"},
+        )
+
+        assert response.status_code == 403
+        assert (
+            response.json()["detail"] == "O usuário não tem permissão de administrador."
+        )
 
     def test_get_current_user_as_admin(self, client, setUp, admin_access_token):
         response = client.get(
@@ -203,6 +232,34 @@ class TestUserRoutes:
         )
 
         assert created.json()["email"] == data["email"]
+
+    def test_create_internal_user_without_privileges(
+        self, client, setUp, user_access_token
+    ):
+        data = {
+            "email": "user@example.ufcg.edu.br",
+            "cpf": "80513586160",
+            "phone": "83999124702",
+            "occupation": "ALUNO",
+            "is_active": True,
+            "is_admin": False,
+            "is_internal": True,
+            "full_name": "Internal User",
+            "password": "internal user password",
+        }
+
+        response = client.post(
+            USER_PREFIX + "/",
+            headers={
+                "Authorization": f"Bearer {user_access_token}",
+                "accept": "application/json",
+                "Content-Type": "application/json",
+            },
+            json=data,
+        )
+
+        assert response.status_code == 403
+        assert response.json()["detail"] == "O usuário não tem privilégios suficientes"
 
     def test_create_internal_user_email_already_exist(
         self, client, setUp, admin_access_token
