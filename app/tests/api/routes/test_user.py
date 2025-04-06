@@ -130,7 +130,7 @@ class TestUserRoutes:
         assert response.status_code == 403
         assert response.json()["detail"] == "O usuário não tem privilégios suficientes"
 
-    def test_get_user(self, client, setUp, admin_access_token):
+    def test_get_user_by_id(self, client, setUp, admin_access_token):
         get_users_response = client.get(
             USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
         )
@@ -145,7 +145,7 @@ class TestUserRoutes:
 
         assert response.status_code == 200
 
-    def test_get_user_without_privileges(
+    def test_get_user_by_id_without_privileges(
         self, client, setUp, admin_access_token, user_access_token
     ):
         get_users_response = client.get(
@@ -165,6 +165,60 @@ class TestUserRoutes:
             response.json()["detail"] == "O usuário não tem permissão de administrador."
         )
 
+    def test_get_user_by_email(
+        self, client, setUp, admin_access_token, user_access_token
+    ):
+        get_users_response = client.get(
+            USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
+        )
+
+        assert get_users_response.status_code == 200
+
+        first_user_email = get_users_response.json()[0]["email"]
+        second_user_email = get_users_response.json()[1]["email"]
+
+        first_response = client.get(
+            USER_PREFIX + f"/email/{first_user_email}",
+            headers={"Authorization": f"Bearer {admin_access_token}"},
+        )
+
+        assert first_response.status_code == 200
+
+        second_response = client.get(
+            USER_PREFIX + f"/email/{second_user_email}",
+            headers={"Authorization": f"Bearer {admin_access_token}"},
+        )
+
+        assert second_response.status_code == 200
+
+    def test_get_user_by_email_without_privileges(
+        self, client, setUp, admin_access_token, user_access_token
+    ):
+        get_users_response = client.get(
+            USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
+        )
+
+        assert get_users_response.status_code == 200
+
+        first_user_email = get_users_response.json()[0]["email"]
+        second_user_email = get_users_response.json()[1]["email"]
+
+        first_response = client.get(
+            USER_PREFIX + f"/email/{first_user_email}",
+            headers={"Authorization": f"Bearer {user_access_token}"},
+        )
+
+        assert first_response.status_code == 403
+
+        # On this case, the current user retrieves it's own user by his/her email
+        second_response = client.get(
+            USER_PREFIX + f"/email/{second_user_email}",
+            headers={"Authorization": f"Bearer {user_access_token}"},
+        )
+
+        # So, the status code should be 200
+        assert second_response.status_code == 200
+
     def test_get_current_user_as_admin(self, client, setUp, admin_access_token):
         response = client.get(
             USER_PREFIX + "/me",
@@ -183,7 +237,7 @@ class TestUserRoutes:
         assert response.status_code == 200
         assert response.json()["email"] == "francisnaldo@example.ufcg.edu.br"
 
-    def test_get_user_not_exists(self, client, setUp, admin_access_token):
+    def test_get_user_by_id_not_exists(self, client, setUp, admin_access_token):
         random_uuid = uuid.uuid4()
         response = client.get(
             USER_PREFIX + f"/{random_uuid}",
