@@ -20,7 +20,7 @@ def create_reservation_route(
     current_user: User = Depends(get_current_user)
     ):
     try:
-        reservation = create_reservation(db, reservation_data)
+        reservation = create_reservation(db, reservation_data, current_user)
         participants = get_participants_by_reservation_id(db,reservation.id)
         reservation_respose = ReservationResponse(
                 id = reservation.id,
