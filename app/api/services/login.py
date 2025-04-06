@@ -49,7 +49,7 @@ def dispatch_confirmation_email(user: User):
         expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
     )
     try:
-        link = f"{settings.URL_BASE}/login/confirm-email/{token}"
+        link = f"{settings.FRONTEND_URL}/confirm-email/{token}"
         send_email(
             email_to=user.email,
             subject=f"{settings.PROJECT_NAME} - Confirme seu email",
@@ -61,7 +61,7 @@ def dispatch_confirmation_email(user: User):
 
 def dispatch_reset_password_email(email: str, token: str):
     try:
-        link = f"{settings.URL_BASE}/reset-password/{token}"
+        link = f"{settings.FRONTEND_URL}/redefinir-senha/{token}"
         send_email(
             email_to=email,
             subject=f"{settings.PROJECT_NAME} - Mude sua senha",

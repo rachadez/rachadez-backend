@@ -18,6 +18,7 @@ class Settings:
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False
     URL_BASE: str = "http://localhost:8000/v1"
+    FRONTEND_URL: str = "http://localhost:5173"
 
     CORS_ORIGINS: list[str] = ["http://localhost", "http://localhost:5173"]
 
