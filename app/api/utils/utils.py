@@ -1,4 +1,8 @@
 from datetime import datetime, timedelta, timezone, time
+
+import uuid
+from fastapi import HTTPException
+
 from jwt.exceptions import InvalidTokenError
 from sqlalchemy.orm import Session
 import jwt
@@ -119,12 +123,12 @@ def is_valid_sports_schedule(reservation: Reservation, arena: Arena) -> bool:
     return False
   
 
-def is_reservation_available(session: Session, reservation: Reservation) -> bool:
+def is_reservation_available(session: Session, arena_id: uuid.UUID, start_date: datetime, end_date: datetime) -> bool:
     
     existing_reservation = session.query(Reservation).filter(
-        Reservation.arena_id == reservation.arena_id,  
-        Reservation.start_date < reservation.end_date,
-        Reservation.end_date > reservation.start_date
+        Reservation.arena_id == arena_id,  
+        Reservation.start_date < end_date,
+        Reservation.end_date > start_date
     ).first()
 
     return existing_reservation is None 
@@ -174,3 +178,44 @@ def generate_password_reset_token(email: str) -> str:
 
 def verify_end_date(start_date: datetime, end_date: datetime):
     return end_date - start_date == timedelta(hours=1, minutes=30)
+
+
+def verify_last_reservation(arena: Arena, user: User, start_date: datetime):
+    
+    if arena.type in ["VOLEI", "SOCIETY"]:
+        if verify_last_reservation_monthly(user.last_reservation_monthly):
+            user.last_reservation_monthly = start_date
+    elif arena.type in ["BEACH_TENNIS", "TÊNIS"]:
+        if verify_last_reservation_weekly(user.last_reservation_weekly, start_date):
+            user.last_reservation_weekly = start_date
+        
+def verify_last_reservation_monthly(last_reservation: datetime):
+    
+    if last_reservation is None:
+        return True
+    
+    today = datetime.now()
+    if last_reservation.month == today.month and last_reservation.year == today.year:
+        raise HTTPException(
+            status_code=400,
+            detail="O usuário ainda não está liberado para fazer outra reserva este mês."
+        )
+    
+    return True
+
+def verify_last_reservation_weekly(last_reservation: datetime | None, start_date: datetime) -> bool:
+    if last_reservation is None:
+        return True
+    
+    start_date = start_date.replace(tzinfo=None)
+    last_reservation = last_reservation.replace(tzinfo=None)
+
+    if start_date - last_reservation < timedelta(days=7):
+        raise HTTPException(
+            status_code=400,
+            detail="O usuário ainda não está liberado para fazer outra reserva esta semana."
+        )
+    
+    return True
+
+    
