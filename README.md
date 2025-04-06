@@ -29,7 +29,7 @@ cd rachadez-api
 ```bash
 poetry install
 ```
-
+---
 
 🧪 Estrutura do Projeto
 ```
@@ -52,6 +52,7 @@ poetry install
 ├── main.py
 └── tests
 ```
+---
 
 🚀 Como rodar o projeto
 
@@ -73,9 +74,7 @@ make run-dev
     curl http://localhost:8000/v1/
     {"msg":"Hello World!"}
   ```
-
-🤝 Como Contribuir
-### Faça um fork do projeto
+---
 
 ## 🤝 Como Contribuir
 
@@ -106,3 +105,5 @@ Breve explicação do que foi feito, qual problema resolve ou qual funcionalidad
 Se houver, referencie o número da issue, ex: Closes #10
 ```
 > ⚠️ Mantenha sua branch atualizada com a main ou dev para evitar conflitos.
+
+---
