@@ -45,7 +45,7 @@ def access_token(client, setUp):
 
 
 class TestUserRoutes:
-    def test_login_access_sucess(self, client, setUp):
+    def test_login_access_success(self, client, setUp):
         response = client.post(
             "/v1/login/access-token",
             data={
@@ -367,7 +367,7 @@ class TestUserRoutes:
             for error in response_data
         )
 
-    def test_signup_user_invalid_ocuppation(self, client):
+    def test_signup_user_invalid_occupation(self, client):
         data = {
             "email": "user@ccc.ufcg.edu.br",
             "password": "senha1234",
