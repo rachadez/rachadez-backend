@@ -139,18 +139,29 @@ def delete_reservation(db: Session, reservation_id: uuid.UUID, user_id: uuid.UUI
     
     try:
         reservation = db.query(Reservation).filter(Reservation.id == reservation_id).first()
-
+        user_owner = db.query(User).filter(User.id == user_id).first()
+        arena = db.get(Arena, reservation.arena_id)
+        
         if not reservation:
             raise HTTPException(status_code=404, detail="Reserva não encontrada.")
 
         if reservation.responsible_user_id != user_id and not user.is_admin:
             raise HTTPException(status_code=403, detail="Você não tem permissão para cancelar esta reserva.")
-
+        if not arena:
+            raise HTTPException(status_code=404, detail="Arena não encontrada.")
+        
         if reservation.start_date <= datetime.now():
             raise HTTPException(status_code=400, detail="Não é possível cancelar uma reserva que já iniciou.")
-
+        else:
+            if arena.type in ["TÊNIS" , "BEACH_TENNIS"]:
+                user.last_reservation_weekly = None
+            else:
+                user.last_reservation_monthly = None
+                
+        db.add(user)
         db.delete(reservation)
         db.commit() 
+        db.refresh(user)
 
         return "Reserva cancelada com sucesso."
 
