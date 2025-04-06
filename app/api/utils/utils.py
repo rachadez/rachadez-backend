@@ -50,7 +50,12 @@ def verify_weekly_sports(reservation: Reservation, arena: Arena, user: User) -> 
     if arena.type in ["BEACH_TENNIS", "TÊNIS"]:
         if user.is_internal:
             # Usuários internos podem reservar qualquer horário na semana que estão ou na próxima semana (depois de quinta-feira 15h)
-            if start_date.date() >= today:
+            
+            #Verifica se a data já passou
+            if start_date.date() < today:
+                return False
+            #Verifica se está na mesma semana
+            if start_date.date() >= today and start_date.isocalendar()[:2] == today.isocalendar()[:2]:
                 return True
             if start_date.date() > today + timedelta(days=7) and now < thursday_15h:
                 return False
@@ -87,6 +92,10 @@ def verify_monthly_sports(reservation: Reservation, arena: Arena, user: User) ->
     if arena.type in ["VOLEI", "SOCIETY"]:
         if user.is_internal:
             # Usuários internos podem marcar rachas para o mês atual ou o próximo mês após o dia 15
+            
+            #Verifica se a data já passou
+            if start_date.date() < today:
+                return False
             if start_date.month == today.month:
                 return True
             if start_date.month == today.month + 1 or (
@@ -97,6 +106,12 @@ def verify_monthly_sports(reservation: Reservation, arena: Arena, user: User) ->
             return False
         else:
             return False
+          
+        
+    return True
+    
+
+
 
 
 def is_valid_sports_schedule(reservation: Reservation, arena: Arena) -> bool:
@@ -142,20 +157,17 @@ def is_valid_sports_schedule(reservation: Reservation, arena: Arena) -> bool:
     return False
 
 
-def is_reservation_available(
-    session: Session, arena_id: uuid.UUID, start_date: datetime, end_date: datetime
-) -> bool:
-    existing_reservation = (
-        session.query(Reservation)
-        .filter(
-            Reservation.arena_id == arena_id,
-            Reservation.start_date < end_date,
-            Reservation.end_date > start_date,
-        )
-        .first()
-    )
+def is_reservation_available(session: Session, reservation: Reservation) -> bool:
+    
+    arena_id = reservation.arena_id
+    end_date = reservation.end_date
+    start_date = reservation.start_date
 
-    return existing_reservation is None
+    existing_reservation = session.query(Reservation).filter(
+        Reservation.arena_id == arena_id,  
+        Reservation.start_date < end_date,
+        Reservation.end_date > start_date
+    ).first()
 
 
 def is_previous_week(date: datetime) -> bool:
