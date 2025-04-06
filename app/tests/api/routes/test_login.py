@@ -236,8 +236,7 @@ class TestRoutesLogin:
         assert response.status_code == 400
         assert response.json()["detail"] == "Token inválido."
 
-    def test_reset_password(self, client, set_up_user):
-
+    def test_reset_password_inactive_user(self, client, set_up_user):
 
         token = generate_password_reset_token(email=set_up_user.email)
 
