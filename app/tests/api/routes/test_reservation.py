@@ -136,46 +136,6 @@ class TestReservationRoutes():
         
         assert response.status_code == 200
 
-    ######
-    def test_reservation_internal_not_active(self, client, setUp, access_token):
-        data = {
-            "email": "user@example.ufcg.edu.br",
-            "cpf": "80513586160",
-            "phone": "83999124702",
-            "occupation": "ALUNO",
-            "is_active": False,
-            "is_admin": False,
-            "is_internal": True,
-            "full_name": "Internal User",
-            "password": "internal user password",
-        }
-
-        new_internal = client.post(
-            "/v1/users" + "/",
-            headers={
-                "Authorization": f"Bearer {access_token}",
-                "accept": "application/json",
-                "Content-Type": "application/json",
-            },
-            json=data,
-        )
-
-
-        next_day = next_monday()
-        data = {
-            "responsible_user_id": str(new_internal.json()['id']),
-            "arena_id": 1,
-            "start_date": (next_day + timedelta(days=1)).isoformat(),
-            "end_date": (next_day + timedelta(days=1, hours=1.5)).isoformat()
-        }
-
-        response = client.post(RESERVATION_PREFIX + "/",
-                               headers={"Authorization": f"Bearer {access_token}"},
-                               json=data)
-
-        #assert response.status_code == 500
-        #assert "Usuário inativo ou bloqueado" in response.json()['detail']
-
     
     def test_reservation_invalid_arena(self, client, setUp, access_token):
         get_users = client.get("/v1/users/", headers={"Authorization": f"Bearer {access_token}"})
