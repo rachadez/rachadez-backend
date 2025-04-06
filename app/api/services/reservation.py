@@ -1,4 +1,5 @@
 from datetime import datetime
+import sys
 from sqlmodel import Session, select
 import uuid
 from fastapi import Depends, HTTPException
@@ -141,6 +142,7 @@ def delete_reservation(db: Session, reservation_id: uuid.UUID, user_id: uuid.UUI
         reservation = db.query(Reservation).filter(Reservation.id == reservation_id).first()
         user_owner = db.query(User).filter(User.id == user_id).first()
         arena = db.get(Arena, reservation.arena_id)
+        
         
         if not reservation:
             raise HTTPException(status_code=404, detail="Reserva não encontrada.")
