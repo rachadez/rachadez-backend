@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, timezone, time
-from fastapi import security
 from jwt.exceptions import InvalidTokenError
 from sqlalchemy.orm import Session
 import jwt
@@ -7,6 +6,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+from app.core import security
 from app.api.models.reservation import Reservation
 from app.api.models.user import User
 from app.core.config import settings
