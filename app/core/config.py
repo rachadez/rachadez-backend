@@ -11,7 +11,7 @@ class Settings:
     # the database container name, in this case it is just `db`.
     # For sake of simplicity, I'll leave just `db` and to run the API, you must use Make targets
     # so I've configure run target to build the API.
-    DATABASE_URL: str = "postgresql://postgres:postgres@localhost/postgres"
+    DATABASE_URL: str = "postgresql://postgres:postgres@db/postgres"
     # 60 minutes * 24 hours * 8 days
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
     SECRET_KEY: str = secrets.token_urlsafe(32)
