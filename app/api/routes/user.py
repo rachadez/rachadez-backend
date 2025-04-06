@@ -171,7 +171,8 @@ def update_user(user_id: uuid.UUID, user_in: UserUpdate, session: SessionDep):
         )
         if existing_user and existing_user.id != user_id:
             raise HTTPException(
-                status_code=409, detail="E-mail inválido. Já existe um usuário com esse e-mail."
+                status_code=409,
+                detail="E-mail inválido. Já existe um usuário com esse e-mail.",
             )
 
     db_user = user_service.update_user(
@@ -245,10 +246,8 @@ def unblock_user(user_id: uuid.UUID, session: SessionDep):
     session.commit()
     return user
 
+
 @router.get("/users/user-id/{email}")
 def get_user_id_by_email(email: str, session: SessionDep, user: CurrentUser):
-    db_user = user_service.get_user_by_email(session=session, email=email)
-
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
-    return {"user_id": db_user.id}
+    result = user_service.verify_user(session=session, email=email)
+    return {"user_id": result.id}

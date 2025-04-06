@@ -1,3 +1,4 @@
+from pydantic import BaseModel
 from sqlmodel import Relationship, SQLModel, Field
 from typing import Optional
 from datetime import datetime
@@ -40,3 +41,8 @@ class ReservationResponse(SQLModel):
     start_date: datetime
     end_date: datetime
     participants: list[User] = Field(default=[]) 
+    
+    
+class ReservationDates(BaseModel):
+    start_date: datetime
+    end_date: datetime

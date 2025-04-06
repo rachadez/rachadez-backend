@@ -1,23 +1,26 @@
+import datetime
 from typing import List
 import uuid
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from app.api.models.user import User
 from sqlalchemy.orm import Session
 from app.api.deps import CurrentUser, SessionDep, get_db, get_current_user
-from app.api.models.reservation import Reservation, ReservationUpdate, ReservationResponse
+from app.api.models.reservation import Reservation, ReservationDates, ReservationUpdate, ReservationResponse
 from app.api.services.reservation import create_reservation, delete_reservation, get_participants_by_reservation_id, update_reservation
 from app.api.models.reservation import ReservationCreate
 from app.core.db import get_session
+from app.api.utils.utils import is_reservation_available
 
 router = APIRouter(prefix="/reservations", tags=["reservations"])
 
 @router.post("/", response_model=ReservationResponse)
 def create_reservation_route(
     reservation_data: ReservationCreate,
-    db: SessionDep
+    db: SessionDep,
+    current_user: User = Depends(get_current_user)
     ):
     try:
-        reservation = create_reservation(db, reservation_data)
+        reservation = create_reservation(db, reservation_data, current_user)
         participants = get_participants_by_reservation_id(db,reservation.id)
         reservation_respose = ReservationResponse(
                 id = reservation.id,
@@ -141,3 +144,21 @@ def get_reservation(
         return reservation_response
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao listar a reserva: {str(e)}")
+    
+    
+@router.post("/arena/{arena_id}", response_model=bool)
+def verify_date_arena(
+    arena_id: int,
+    dates: ReservationDates,
+    session: SessionDep,
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        return is_reservation_available(
+            session=session,
+            arena_id=arena_id,
+            start_date=dates.start_date,
+            end_date=dates.end_date
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
