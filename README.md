@@ -32,21 +32,15 @@ poetry install
 
 ## 🧪 Estrutura do Projeto
 ```
-├── __init__.py
 ├── api -> Api main directory.
-│   ├── __init__.py
 │   ├── main.py
 │   ├── models -> All entities models.
-│   │   ├── __init__.py
 │   │   └── example.py
 │   ├── services -> Service package containing the methods logic.
-│   │   ├── __init__.py
 │   │   └── example.py
 │   └── routes -> Package with API routes. The files must sent request to service execute.
-│   |   ├── __init__.py
 │   |   └── example.py
-|   └── utils -> Package with utils functions. services and routes could use this directory.
-│       ├── __init__.py
+|   └── utils -> Package with utils functions. services and routes could use this directory.   
 │       └── example.py
 ├── core -> Core files to the project such as db connection and configuration variables.
 │   ├── config.py
@@ -65,7 +59,7 @@ make db-up
 ```
 > Isso utiliza o docker-compose para iniciar um container com o banco de dados configurado
 
-### 2. Rodar o servidor de desenvolvimento
+### 2. Rodar o serviço de desenvolvimento
 
 ```bash
 make run-dev
@@ -75,9 +69,8 @@ make run-dev
 ### 3. Voce pode testar com:
 
 ```bash
-    curl http://localhost:8000/v1/
-    {"msg":"Hello World!"}
-  ```
+    curl http://localhost:8000/docs
+```
 ---
 
 ## 🤝 Como Contribuir
