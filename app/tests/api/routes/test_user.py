@@ -32,7 +32,7 @@ def setUp(db_session, client):
 
 
 @pytest.fixture
-def access_token(client, setUp):
+def admin_access_token(client, setUp):
     response = client.post(
         "/v1/login/access-token",
         data={
@@ -83,17 +83,17 @@ class TestUserRoutes:
         assert response.status_code == 400, response.text
         assert response.json()["detail"] == "Email ou senha incorretos."
 
-    def test_get_users(self, client, setUp, access_token):
+    def test_get_users(self, client, setUp, admin_access_token):
         response = client.get(
-            USER_PREFIX + "/", headers={"Authorization": f"Bearer {access_token}"}
+            USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
         )
 
         assert response.status_code == 200
         assert response.json()[0]["email"] == "admin@example.ufcg.edu.br"
 
-    def test_get_user(self, client, setUp, access_token):
+    def test_get_user(self, client, setUp, admin_access_token):
         get_users_response = client.get(
-            USER_PREFIX + "/", headers={"Authorization": f"Bearer {access_token}"}
+            USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
         )
 
         first_user_id = get_users_response.json()[0]["id"]
@@ -101,22 +101,31 @@ class TestUserRoutes:
         assert get_users_response.status_code == 200
         response = client.get(
             USER_PREFIX + f"/{first_user_id}",
-            headers={"Authorization": f"Bearer {access_token}"},
+            headers={"Authorization": f"Bearer {admin_access_token}"},
         )
 
         assert response.status_code == 200
 
-    def test_get_user_not_exists(self, client, setUp, access_token):
+    def test_get_current_user(self, client, setUp, admin_access_token):
+        response = client.get(
+            USER_PREFIX + "/me",
+            headers={"Authorization": f"Bearer {admin_access_token}"},
+        )
+
+        assert response.status_code == 200
+        assert response.json()["email"] == setUp.email
+
+    def test_get_user_not_exists(self, client, setUp, admin_access_token):
         random_uuid = uuid.uuid4()
         response = client.get(
             USER_PREFIX + f"/{random_uuid}",
-            headers={"Authorization": f"Bearer {access_token}"},
+            headers={"Authorization": f"Bearer {admin_access_token}"},
         )
 
         assert response.status_code == 404
         assert response.json()["detail"] == "Usuário não encontrado."
 
-    def test_create_internal_user(self, client, setUp, access_token):
+    def test_create_internal_user(self, client, setUp, admin_access_token):
         data = {
             "email": "user@example.ufcg.edu.br",
             "cpf": "80513586160",
@@ -132,7 +141,7 @@ class TestUserRoutes:
         response = client.post(
             USER_PREFIX + "/",
             headers={
-                "Authorization": f"Bearer {access_token}",
+                "Authorization": f"Bearer {admin_access_token}",
                 "accept": "application/json",
                 "Content-Type": "application/json",
             },
@@ -142,7 +151,7 @@ class TestUserRoutes:
         assert response.status_code == 200
 
         get_users_response = client.get(
-            USER_PREFIX + "/", headers={"Authorization": f"Bearer {access_token}"}
+            USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
         )
 
         assert len(get_users_response.json()) == 2
@@ -151,13 +160,13 @@ class TestUserRoutes:
 
         created = client.get(
             USER_PREFIX + f"/{second_user_id}",
-            headers={"Authorization": f"Bearer {access_token}"},
+            headers={"Authorization": f"Bearer {admin_access_token}"},
         )
 
         assert created.json()["email"] == data["email"]
 
     def test_create_internal_user_email_already_exist(
-        self, client, setUp, access_token
+        self, client, setUp, admin_access_token
     ):
         data = {
             "email": "user@example.ufcg.edu.br",
@@ -174,7 +183,7 @@ class TestUserRoutes:
         response = client.post(
             USER_PREFIX + "/",
             headers={
-                "Authorization": f"Bearer {access_token}",
+                "Authorization": f"Bearer {admin_access_token}",
                 "accept": "application/json",
                 "Content-Type": "application/json",
             },
@@ -198,7 +207,7 @@ class TestUserRoutes:
         response_second_user = client.post(
             USER_PREFIX + "/",
             headers={
-                "Authorization": f"Bearer {access_token}",
+                "Authorization": f"Bearer {admin_access_token}",
                 "accept": "application/json",
                 "Content-Type": "application/json",
             },
@@ -211,7 +220,9 @@ class TestUserRoutes:
             == "Já existe um usuário com esse e-mail."
         )
 
-    def test_create_internal_user_cpf_already_exist(self, client, setUp, access_token):
+    def test_create_internal_user_cpf_already_exist(
+        self, client, setUp, admin_access_token
+    ):
         data = {
             "email": "user@example.ufcg.edu.br",
             "cpf": "12345678911",
@@ -227,7 +238,7 @@ class TestUserRoutes:
         response = client.post(
             USER_PREFIX + "/",
             headers={
-                "Authorization": f"Bearer {access_token}",
+                "Authorization": f"Bearer {admin_access_token}",
                 "accept": "application/json",
                 "Content-Type": "application/json",
             },
@@ -251,7 +262,7 @@ class TestUserRoutes:
         response_second_user = client.post(
             USER_PREFIX + "/",
             headers={
-                "Authorization": f"Bearer {access_token}",
+                "Authorization": f"Bearer {admin_access_token}",
                 "accept": "application/json",
                 "Content-Type": "application/json",
             },
