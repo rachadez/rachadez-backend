@@ -1,19 +1,37 @@
-# Rachadez API
+# 🏐 Rachadez API
+
+**Rachadez** é uma solução de software para o gerenciamento de **rachas esportivos** da **UFCG**, como **vôlei**, **futebol society**, **beach tênis** e **tênis**.  
+O sistema permite o cadastro e gerenciamento de **usuários internos e externos**, bem como o controle completo de **rachas**, horários, participantes e muito mais.
+
+---
+
+## 📦 Requisitos
+
+Antes de rodar o projeto, você precisará instalar os seguintes itens:
+
+- **[Python 3.11+](https://www.python.org/downloads/)**
+- **[Poetry](https://python-poetry.org/docs/#installation)** – Gerenciador de dependências usado no projeto
+- **[Docker](https://docs.docker.com/get-docker/)** e **[Docker Compose](https://docs.docker.com/compose/)** – Para subir a base de dados
+- **[Make](https://www.gnu.org/software/make/)** (opcional, mas recomendado para facilitar os comandos)
+
+---
 
 ## Setup
 
-First, you'll need to setup your environment so that you can execute and build
-the project correctly. To do this, will need to install the
-[Poetry](https://python-poetry.org/docs/#installation) - the python package
-manager that will be used - to build the project and manage deps.
+## ⚙️ Setup do Projeto
 
-Once installed, run the command in project root dir
-
+### 1. Clone o repositório
+```bash
+git clone https://github.com/seu-usuario/rachadez-api.git
+cd rachadez-api
+```
+### 2. Instale as dependências
 ```bash
 poetry install
 ```
 
-## Project structure
+
+🧪 Estrutura do Projeto
 ```
 ├── __init__.py
 ├── api -> Api main directory.
@@ -35,24 +53,56 @@ poetry install
 └── tests
 ```
 
-## Running
+🚀 Como rodar o projeto
 
-You will need a instance of database running in your machine. To do so, there
-is a `docker-compose` with Postgres declaration. To run the container, run:
+### 1. Subir o banco de dados (PostgreSQL)
 
 ```bash
 make db-up
 ```
+> Isso utiliza o docker-compose para iniciar um container com o banco de dados configurado
 
-To run the application execute
+### 2. Rodar o servidor de desenvolvimento
 
 ```bash
 make run-dev
 ```
-
-Now, check `localhost:8000/v1` in your web browser or via command line with
-
+> O servidor estará disponível em: http://localhost:8000/v1
+> Você pode testar com:
 ```bash
-curl localhost:8000/v1/
-{"msg":"Hello World!"}
+    curl http://localhost:8000/v1/
+    {"msg":"Hello World!"}
+  ```
+
+🤝 Como Contribuir
+### Faça um fork do projeto
+
+## 🤝 Como Contribuir
+
+1. Faça um **fork** do projeto
+2. Crie uma nova **branch** seguindo o padrão:
+
+| Tipo     | Uso                                                  |
+|----------|------------------------------------------------------|
+| `feat/`  | Novas funcionalidades                                |
+| `fix/`   | Correções de bugs                                    |
+| `dev/`   | Desenvolvimento geral e integração de funcionalidades |
+| `refactor/`, `test/`, etc | Outras categorias conforme necessário         |
+
+Exemplo:
+```bash
+git checkout -b feat/adicionar-cadastro-usuario
 ```
+Submeta um pull request com uma descrição detalhada do que foi alterado
+
+Template de PR:
+```
+## What this PR does
+
+Breve explicação do que foi feito, qual problema resolve ou qual funcionalidade adiciona.
+
+## Related issues
+
+Se houver, referencie o número da issue, ex: Closes #10
+```
+> ⚠️ Mantenha sua branch atualizada com a main ou dev para evitar conflitos.
