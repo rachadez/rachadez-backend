@@ -247,28 +247,6 @@ def unblock_user(user_id: uuid.UUID, session: SessionDep):
     return user
 
 
-@router.get("/users/confirm/{token}", response_model=UserPublic)
-def confirm_email(token: str, session: SessionDep):
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = uuid.UUID(payload["sub"])
-    except ExpiredSignatureError:
-        raise HTTPException(status_code=400, detail="Token expirado.")
-    except InvalidTokenError:
-        raise HTTPException(status_code=400, detail="Token inválido.")
-
-    user = session.get(User, user_id)
-
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
-
-    user.is_active = True
-    session.add(user)
-    session.commit()
-
-    return user
-
-
 @router.get("/users/user-id/{email}")
 def get_user_id_by_email(email: str, session: SessionDep, user: CurrentUser):
     result = user_service.verify_user(session=session, email=email)

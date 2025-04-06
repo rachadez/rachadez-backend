@@ -113,7 +113,7 @@ class TestUserRoutes:
 
         assert response.status_code == 400, response.text
         assert response.json()["detail"] == "Email ou senha incorretos."
-
+    
     def test_get_users(self, client, setUp, admin_access_token):
         response = client.get(
             USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
@@ -570,16 +570,6 @@ class TestUserRoutes:
         response = client.post(USER_PREFIX + "/signup", json=data)
 
         assert response.status_code == 422
-
-    def test_confirm_email(self, client, setUp, admin_access_token, user_access_token):
-        first_response = client.get(USER_PREFIX + f"/confirm/{admin_access_token}")
-        second_response = client.get(USER_PREFIX + f"/confirm/{user_access_token}")
-
-        assert first_response.status_code == 200
-        assert second_response.status_code == 200
-
-        assert first_response.json()["email"] == setUp.email
-        assert second_response.json()["email"] == "francisnaldo@example.ufcg.edu.br"
 
     def test_block_user_by_id(
         self, client, setUp, admin_access_token, user_access_token
