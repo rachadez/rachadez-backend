@@ -31,7 +31,7 @@ poetry install
 ```
 ---
 
-🧪 Estrutura do Projeto
+## 🧪 Estrutura do Projeto
 ```
 ├── __init__.py
 ├── api -> Api main directory.
@@ -57,7 +57,7 @@ poetry install
 ```
 ---
 
-🚀 Como rodar o projeto
+## 🚀 Como rodar o projeto
 
 ### 1. Subir o banco de dados (PostgreSQL)
 
@@ -72,7 +72,9 @@ make db-up
 make run-dev
 ```
 > O servidor estará disponível em: http://localhost:8000/v1
-> Você pode testar com:
+
+### 3. Voce pode testar com:
+
 ```bash
     curl http://localhost:8000/v1/
     {"msg":"Hello World!"}
