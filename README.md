@@ -1,7 +1,6 @@
 # 🏐 Rachadez API
 
-**Rachadez** é uma solução de software para o gerenciamento de **rachas esportivos** da **UFCG**, como **vôlei**, **futebol society**, **beach tênis** e **tênis**.  
-O sistema permite o cadastro e gerenciamento de **usuários internos e externos**, bem como o controle completo de **rachas**, horários, participantes e muito mais.
+**Rachadez** é uma solução de software para o gerenciamento de **rachas esportivos** da **UFCG**, como **vôlei**, **futebol society**, **beach tênis** e **tênis**.  O sistema permite o cadastro e gerenciamento de **usuários internos e externos**, bem como o controle completo de **rachas**, horários, participantes e muito mais.
 
 ---
 
