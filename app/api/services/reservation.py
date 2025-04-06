@@ -51,7 +51,7 @@ def create_reservation(session: SessionDep, reservation_data: ReservationCreate,
             raise HTTPException(status_code=400, detail="Reserva ilegal, horário ou data não permitido.")
         
         if not user.is_admin:
-            if not is_reservation_available(session, reservation.arena_id, reservation.start_date, reservation.end_date):
+            if not is_reservation_available(session):
                 raise HTTPException(status_code=400, detail="Já existe uma reserva nesse horário.")
             verify_last_reservation(arena, user_owner, reservation.start_date)
             
