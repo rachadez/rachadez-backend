@@ -896,3 +896,92 @@ class TestUserRoutes:
 
         assert get_user_response.status_code == 200
         assert get_user_response.json()["is_active"] is False
+
+    def test_get_user_id_by_email_with_privileges(
+        self, client, setUp, admin_access_token, user_access_token
+    ):
+        get_users_response = client.get(
+            USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
+        )
+
+        assert get_users_response.status_code == 200
+
+        # The 2nd user is a normal user, the 1st is admin
+        user_id = get_users_response.json()[1]["id"]
+        user_email = get_users_response.json()[1]["email"]
+
+        assert get_users_response.status_code == 200
+        response = client.get(
+            USER_PREFIX + f"/user-id/{user_email}",
+            headers={"Authorization": f"Bearer {admin_access_token}"},
+        )
+
+        assert response.status_code == 200
+        assert response.json()["user_id"] == user_id
+
+    def test_get_user_id_by_email_without_privileges(
+        self, client, setUp, admin_access_token, user_access_token
+    ):
+        get_users_response = client.get(
+            USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
+        )
+
+        assert get_users_response.status_code == 200
+
+        # The third user is a normal user, the 1st is the admin
+        user_id = get_users_response.json()[1]["id"]
+        user_email = get_users_response.json()[1]["email"]
+
+        assert get_users_response.status_code == 200
+        response = client.get(
+            USER_PREFIX + f"/user-id/{user_email}",
+            headers={"Authorization": f"Bearer {user_access_token}"},
+        )
+
+        assert response.status_code == 200
+        assert response.json()["user_id"] == user_id
+
+    def test_get_user_id_by_email_user_inactive(
+        self, client, setUp, admin_access_token, user_access_token
+    ):
+        # This user is created but he's not active
+        data = {
+            "email": "user@ccc.ufcg.edu.br",
+            "password": "senha1234",
+            "cpf": "12345678911",
+            "phone": "83911223344",
+            "occupation": "ALUNO",
+            "full_name": "user",
+        }
+
+        response = client.post(USER_PREFIX + "/signup", json=data)
+
+        assert response.status_code == 200
+
+        get_users_response = client.get(
+            USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
+        )
+
+        assert get_users_response.status_code == 200
+
+        # The third user is the just created one, 1st is admin and 2nd is a normal user
+        third_user_id = get_users_response.json()[2]["id"]
+        third_user_email = get_users_response.json()[2]["email"]
+
+        assert get_users_response.status_code == 200
+        response = client.get(
+            USER_PREFIX + f"/user-id/{third_user_email}",
+            headers={"Authorization": f"Bearer {admin_access_token}"},
+        )
+
+        assert response.status_code == 400
+        assert response.json()["detail"] == "Usuário inativo ou bloqueado"
+
+    def test_get_user_id_by_email_not_exists(self, client, setUp, user_access_token):
+        response = client.get(
+            USER_PREFIX + "/user-id/fake_email@example.ufcg.edu.br",
+            headers={"Authorization": f"Bearer {user_access_token}"},
+        )
+
+        assert response.status_code == 404
+        assert response.json()["detail"] == "Usuário não encontrado."
