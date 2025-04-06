@@ -4,7 +4,14 @@ import secrets
 class Settings:
     PROJECT_NAME: str = "RACHADEZ"
     API_V1_STR: str = "/v1"
-    DATABASE_URL: str = "postgresql://postgres:postgres@localhost/postgres"
+    # NOTE(winicius): We must need to get those variables from a `.env` file
+    # so we do not need to pass the values hardcoded, but configure it before deploy.
+    # This allow us to change between a development environment and production environment.
+    # For example: in dev, the database runs on `localhost`, but in production we need to pass
+    # the database container name, in this case it is just `db`.
+    # For sake of simplicity, I'll leave just `db` and to run the API, you must use Make targets
+    # so I've configure run target to build the API.
+    DATABASE_URL: str = "postgresql://postgres:postgres@db/postgres"
     # 60 minutes * 24 hours * 8 days
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
     SECRET_KEY: str = secrets.token_urlsafe(32)
