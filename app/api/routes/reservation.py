@@ -1,11 +1,11 @@
 import datetime
 from typing import List
 import uuid
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from app.api.models.user import User
 from sqlalchemy.orm import Session
 from app.api.deps import CurrentUser, SessionDep, get_db, get_current_user
-from app.api.models.reservation import Reservation, ReservationUpdate, ReservationResponse
+from app.api.models.reservation import Reservation, ReservationDates, ReservationUpdate, ReservationResponse
 from app.api.services.reservation import create_reservation, delete_reservation, get_participants_by_reservation_id, update_reservation
 from app.api.models.reservation import ReservationCreate
 from app.core.db import get_session
@@ -145,15 +145,18 @@ def get_reservation(
         raise HTTPException(status_code=500, detail=f"Erro ao listar a reserva: {str(e)}")
     
     
-@router.get("/arena/{arena_id}/{start_date}/{end_date}", response_model=bool)
+@router.post("/arena/{arena_id}", response_model=bool)
 def verify_date_arena(
-  arena_id: uuid.UUID,
-  start_date: datetime,
-  end_date: datetime,
-  session: SessionDep,  
+    arena_id: uuid.UUID,
+    dates: ReservationDates,
+    session: SessionDep,
 ):
-    
     try:
-        return is_reservation_available(session=session, arena_id=arena_id, start_date=start_date, end_date=end_date)
+        return is_reservation_available(
+            session=session,
+            arena_id=arena_id,
+            start_date=dates.start_date,
+            end_date=dates.end_date
+        )
     except Exception as e:
-        return str(e)
+        raise HTTPException(status_code=400, detail=str(e))
