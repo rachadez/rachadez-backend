@@ -76,6 +76,44 @@ def user_access_token(db_session, client):
 
 
 class TestUserRoutes:
+    def test_login_access_success(self, client, setUp):
+    response = client.post(
+        "/v1/login/access-token",
+        data={
+            "username": setUp.email,
+            "password": "admin password",
+        },
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+
+    assert response.status_code == 200
+
+    def test_login_access_incorrect_email(self, client, setUp):
+        response = client.post(
+            "/v1/login/access-token",
+            data={
+                "username": "emailerrado@example.ufcg.edu.br",
+                "password": "admin password",
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+
+        assert response.status_code == 400, response.text
+        assert response.json()["detail"] == "Email ou senha incorretos."
+
+    def test_login_access_incorrect_password(self, client, setUp):
+        response = client.post(
+            "/v1/login/access-token",
+            data={
+                "username": setUp.email,
+                "password": "senha incorreta",
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+
+        assert response.status_code == 400, response.text
+        assert response.json()["detail"] == "Email ou senha incorretos."
+    
     def test_get_users(self, client, setUp, admin_access_token):
         response = client.get(
             USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
