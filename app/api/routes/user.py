@@ -38,13 +38,13 @@ def create_user(user_in: UserCreate, session: SessionDep) -> User | None:
     user_db = user_service.get_user_by_cpf(session=session, cpf=user_in.cpf)
     if user_db:
         raise HTTPException(
-            status_code=404, detail="Já existe um usuário com esse CPF."
+            status_code=400, detail="Já existe um usuário com esse CPF."
         )
 
     user_db = user_service.get_user_by_email(session=session, email=user_in.email)
     if user_db:
         raise HTTPException(
-            status_code=404, detail="Já existe um usuário com esse e-mail."
+            status_code=400, detail="Já existe um usuário com esse e-mail."
         )
 
     user_db = user_service.create_user(session=session, user_create=user_in)
@@ -67,7 +67,7 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     user_db = user_service.get_user_by_cpf(session=session, cpf=user_in.cpf)
     if user_db:
         raise HTTPException(
-            status_code=404, detail="Já existe um usuário com esse CPF."
+            status_code=400, detail="Já existe um usuário com esse CPF."
         )
 
     user = user_service.get_user_by_email(session=session, email=user_in.email)
@@ -171,7 +171,8 @@ def update_user(user_id: uuid.UUID, user_in: UserUpdate, session: SessionDep):
         )
         if existing_user and existing_user.id != user_id:
             raise HTTPException(
-                status_code=409, detail="E-mail inválido. Já existe um usuário com esse e-mail."
+                status_code=409,
+                detail="E-mail inválido. Já existe um usuário com esse e-mail.",
             )
 
     db_user = user_service.update_user(
@@ -246,33 +247,7 @@ def unblock_user(user_id: uuid.UUID, session: SessionDep):
     return user
 
 
-@router.get("/users/confirm/{token}", response_model=UserPublic)
-def confirm_email(token: str, session: SessionDep):
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = uuid.UUID(payload["sub"])
-    except ExpiredSignatureError:
-        raise HTTPException(status_code=400, detail="Token expirado.")
-    except InvalidTokenError:
-        raise HTTPException(status_code=400, detail="Token inválido.")
-
-    user = session.get(User, user_id)
-
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
-
-    user.is_active = True
-    session.add(user)
-    session.commit()
-
-    return user
-
 @router.get("/users/user-id/{email}")
 def get_user_id_by_email(email: str, session: SessionDep, user: CurrentUser):
-    
-    try: 
-        result = user_service.verify_user(session=session, email=email)
-        return {"user_id": result.id}
-    except Exception as e:
-        return str(e)
-        
+    result = user_service.verify_user(session=session, email=email)
+    return {"user_id": result.id}
