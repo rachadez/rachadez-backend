@@ -31,6 +31,19 @@ def setUp(db_session, client):
     return user
 
 
+@pytest.fixture
+def access_token(client, setUp):
+    response = client.post(
+        "/v1/login/access-token",
+        data={
+            "username": setUp.email,
+            "password": "admin password",
+        },
+    )
+
+    return response.json()["access_token"]
+
+
 class TestUserRoutes:
     def test_login_access_sucess(self, client, setUp):
         response = client.post(
@@ -43,7 +56,6 @@ class TestUserRoutes:
         )
 
         assert response.status_code == 200
-    
 
     def test_login_access_incorrect_email(self, client, setUp):
         response = client.post(
@@ -57,7 +69,7 @@ class TestUserRoutes:
 
         assert response.status_code == 400, response.text
         assert response.json()["detail"] == "Email ou senha incorretos."
-    
+
     def test_login_access_incorrect_password(self, client, setUp):
         response = client.post(
             "/v1/login/access-token",
@@ -71,38 +83,17 @@ class TestUserRoutes:
         assert response.status_code == 400, response.text
         assert response.json()["detail"] == "Email ou senha incorretos."
 
-
-    def test_get_users(self, client, setUp):
-        access_token_response = client.post(
-            "/v1/login/access-token",
-            data={
-                "username": "admin@example.ufcg.edu.br",
-                "password": "admin password",
-            },
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-        )
-
-        token = access_token_response.json()["access_token"]
+    def test_get_users(self, client, setUp, access_token):
         response = client.get(
-            USER_PREFIX + "/", headers={"Authorization": f"Bearer {token}"}
+            USER_PREFIX + "/", headers={"Authorization": f"Bearer {access_token}"}
         )
 
         assert response.status_code == 200
         assert response.json()[0]["email"] == "admin@example.ufcg.edu.br"
 
-    def test_get_user(self, client, setUp):
-        access_token_response = client.post(
-            "/v1/login/access-token",
-            data={
-                "username": "admin@example.ufcg.edu.br",
-                "password": "admin password",
-            },
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-        )
-
-        token = access_token_response.json()["access_token"]
+    def test_get_user(self, client, setUp, access_token):
         get_users_response = client.get(
-            USER_PREFIX + "/", headers={"Authorization": f"Bearer {token}"}
+            USER_PREFIX + "/", headers={"Authorization": f"Bearer {access_token}"}
         )
 
         first_user_id = get_users_response.json()[0]["id"]
@@ -110,33 +101,22 @@ class TestUserRoutes:
         assert get_users_response.status_code == 200
         response = client.get(
             USER_PREFIX + f"/{first_user_id}",
-            headers={"Authorization": f"Bearer {token}"},
+            headers={"Authorization": f"Bearer {access_token}"},
         )
 
         assert response.status_code == 200
 
-    def test_get_user_not_exists(self, client, setUp):
-        access_token_response = client.post(
-            "/v1/login/access-token",
-            data={
-                "username": "admin@example.ufcg.edu.br",
-                "password": "admin password",
-            },
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-        )
-
-        print(access_token_response.json())
-        token = access_token_response.json()["access_token"]
+    def test_get_user_not_exists(self, client, setUp, access_token):
         random_uuid = uuid.uuid4()
         response = client.get(
             USER_PREFIX + f"/{random_uuid}",
-            headers={"Authorization": f"Bearer {token}"},
+            headers={"Authorization": f"Bearer {access_token}"},
         )
 
         assert response.status_code == 404
         assert response.json()["detail"] == "Usuário não encontrado."
 
-    def test_create_internal_user(self, client, setUp):
+    def test_create_internal_user(self, client, setUp, access_token):
         data = {
             "email": "user@example.ufcg.edu.br",
             "cpf": "80513586160",
@@ -149,21 +129,10 @@ class TestUserRoutes:
             "password": "internal user password",
         }
 
-        access_token_response = client.post(
-            "/v1/login/access-token",
-            data={
-                "username": "admin@example.ufcg.edu.br",
-                "password": "admin password",
-            },
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-        )
-
-        token = access_token_response.json()["access_token"]
-
         response = client.post(
             USER_PREFIX + "/",
             headers={
-                "Authorization": f"Bearer {token}",
+                "Authorization": f"Bearer {access_token}",
                 "accept": "application/json",
                 "Content-Type": "application/json",
             },
@@ -173,7 +142,7 @@ class TestUserRoutes:
         assert response.status_code == 200
 
         get_users_response = client.get(
-            USER_PREFIX + "/", headers={"Authorization": f"Bearer {token}"}
+            USER_PREFIX + "/", headers={"Authorization": f"Bearer {access_token}"}
         )
 
         assert len(get_users_response.json()) == 2
@@ -182,12 +151,14 @@ class TestUserRoutes:
 
         created = client.get(
             USER_PREFIX + f"/{second_user_id}",
-            headers={"Authorization": f"Bearer {token}"},
+            headers={"Authorization": f"Bearer {access_token}"},
         )
 
         assert created.json()["email"] == data["email"]
-    
-    def test_create_internal_user_email_already_exist(self, client, setUp):
+
+    def test_create_internal_user_email_already_exist(
+        self, client, setUp, access_token
+    ):
         data = {
             "email": "user@example.ufcg.edu.br",
             "cpf": "12345678911",
@@ -200,21 +171,10 @@ class TestUserRoutes:
             "password": "internal user password",
         }
 
-        access_token_response = client.post(
-            "/v1/login/access-token",
-            data={
-                "username": "admin@example.ufcg.edu.br",
-                "password": "admin password",
-            },
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-        )
-
-        token = access_token_response.json()["access_token"]
-
         response = client.post(
             USER_PREFIX + "/",
             headers={
-                "Authorization": f"Bearer {token}",
+                "Authorization": f"Bearer {access_token}",
                 "accept": "application/json",
                 "Content-Type": "application/json",
             },
@@ -238,7 +198,7 @@ class TestUserRoutes:
         response_second_user = client.post(
             USER_PREFIX + "/",
             headers={
-                "Authorization": f"Bearer {token}",
+                "Authorization": f"Bearer {access_token}",
                 "accept": "application/json",
                 "Content-Type": "application/json",
             },
@@ -246,9 +206,12 @@ class TestUserRoutes:
         )
 
         assert response_second_user.status_code == 400
-        assert response_second_user.json()["detail"] == "Já existe um usuário com esse e-mail."
+        assert (
+            response_second_user.json()["detail"]
+            == "Já existe um usuário com esse e-mail."
+        )
 
-    def test_create_internal_user_cpf_already_exist(self, client, setUp):
+    def test_create_internal_user_cpf_already_exist(self, client, setUp, access_token):
         data = {
             "email": "user@example.ufcg.edu.br",
             "cpf": "12345678911",
@@ -261,21 +224,10 @@ class TestUserRoutes:
             "password": "internal user password",
         }
 
-        access_token_response = client.post(
-            "/v1/login/access-token",
-            data={
-                "username": "admin@example.ufcg.edu.br",
-                "password": "admin password",
-            },
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-        )
-
-        token = access_token_response.json()["access_token"]
-
         response = client.post(
             USER_PREFIX + "/",
             headers={
-                "Authorization": f"Bearer {token}",
+                "Authorization": f"Bearer {access_token}",
                 "accept": "application/json",
                 "Content-Type": "application/json",
             },
@@ -299,7 +251,7 @@ class TestUserRoutes:
         response_second_user = client.post(
             USER_PREFIX + "/",
             headers={
-                "Authorization": f"Bearer {token}",
+                "Authorization": f"Bearer {access_token}",
                 "accept": "application/json",
                 "Content-Type": "application/json",
             },
@@ -307,103 +259,89 @@ class TestUserRoutes:
         )
 
         assert response_second_user.status_code == 400
-        assert response_second_user.json()["detail"] == "Já existe um usuário com esse CPF."
-
-
-
+        assert (
+            response_second_user.json()["detail"]
+            == "Já existe um usuário com esse CPF."
+        )
 
     def test_signup(self, client, setUp):
-
         data = {
             "email": "user@ccc.ufcg.edu.br",
             "password": "senha1234",
             "cpf": "12345678911",
             "phone": "83911223344",
             "occupation": "ALUNO",
-            "full_name": "user"
+            "full_name": "user",
         }
 
-        response = client.post(
-            USER_PREFIX + "/signup",
-            json=data
-        )
+        response = client.post(USER_PREFIX + "/signup", json=data)
 
         assert response.status_code == 200
         assert data["email"] == response.json()["email"]
         assert "id" in response.json()
-    
-    def test_singup_user_email_already_exist(self, client, setUp):
 
+    def test_signup_user_email_already_exist(self, client, setUp):
         data = {
             "email": "user@ccc.ufcg.edu.br",
             "password": "senha1234",
             "cpf": "11111111111",
             "phone": "83911111111",
             "occupation": "ALUNO",
-            "full_name": "user"
+            "full_name": "user",
         }
 
-        response = client.post(
-            USER_PREFIX + "/signup",
-            json=data
-        )
+        response = client.post(USER_PREFIX + "/signup", json=data)
 
         assert response.status_code == 200
 
-        data2 = {
+        data_duplicated_email = {
             "email": "user@ccc.ufcg.edu.br",
             "password": "senha1234",
             "cpf": "22222222222",
             "phone": "83922222222",
             "occupation": "ALUNO",
-            "full_name": "user"
+            "full_name": "user",
         }
 
-        response2 = client.post(
-            USER_PREFIX + "/signup",
-            json=data2
+        response_duplicated_email = client.post(
+            USER_PREFIX + "/signup", json=data_duplicated_email
         )
 
-        assert response2.status_code == 400
-        assert response2.json()["detail"] == "Já existe um usuário com esse e-mail."
-    
-    def test_singup_user_cpf_already_exist(self, client, setUp):
+        assert response_duplicated_email.status_code == 400
+        assert (
+            response_duplicated_email.json()["detail"]
+            == "Já existe um usuário com esse e-mail."
+        )
 
+    def test_signup_user_cpf_already_exist(self, client, setUp):
         data = {
             "email": "user@ccc.ufcg.edu.br",
             "password": "senha1234",
             "cpf": "11111111111",
             "phone": "83911111111",
             "occupation": "ALUNO",
-            "full_name": "user"
+            "full_name": "user",
         }
 
-        response = client.post(
-            USER_PREFIX + "/signup",
-            json=data
-        )
+        response = client.post(USER_PREFIX + "/signup", json=data)
 
         assert response.status_code == 200
 
-        data2 = {
+        data_duplicated_cpf = {
             "email": "user2@ccc.ufcg.edu.br",
             "password": "senha1234",
             "cpf": "11111111111",
             "phone": "83922222222",
             "occupation": "ALUNO",
-            "full_name": "user"
+            "full_name": "user",
         }
 
-        response2 = client.post(
-            USER_PREFIX + "/signup",
-            json=data2
+        response_duplicated_cpf = client.post(
+            USER_PREFIX + "/signup", json=data_duplicated_cpf
         )
 
-        assert response2.status_code == 400
-        assert response2.json()["detail"] == "Já existe um usuário com esse CPF."
-
-
-
-
-
-
+        assert response_duplicated_cpf.status_code == 400
+        assert (
+            response_duplicated_cpf.json()["detail"]
+            == "Já existe um usuário com esse CPF."
+        )
