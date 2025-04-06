@@ -570,3 +570,13 @@ class TestUserRoutes:
         response = client.post(USER_PREFIX + "/signup", json=data)
 
         assert response.status_code == 422
+
+    def test_confirm_email(self, client, setUp, admin_access_token, user_access_token):
+        first_response = client.get(USER_PREFIX + f"/confirm/{admin_access_token}")
+        second_response = client.get(USER_PREFIX + f"/confirm/{user_access_token}")
+
+        assert first_response.status_code == 200
+        assert second_response.status_code == 200
+
+        assert first_response.json()["email"] == setUp.email
+        assert second_response.json()["email"] == "francisnaldo@example.ufcg.edu.br"
