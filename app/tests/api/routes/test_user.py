@@ -803,3 +803,96 @@ class TestUserRoutes:
 
         assert block_response.status_code == 404
         assert block_response.json()["detail"] == "Usuário não encontrado."
+
+    def test_get_blocked_users(
+        self, client, setUp, admin_access_token, user_access_token
+    ):
+        get_users_response = client.get(
+            USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
+        )
+
+        assert get_users_response.status_code == 200
+
+        # The second user created is a normal user, and the first one is the admin himself
+        second_user_id = get_users_response.json()[1]["id"]
+
+        block_response = client.patch(
+            f"/v1/block/{second_user_id}",
+            headers={"Authorization": f"Bearer {admin_access_token}"},
+        )
+
+        assert block_response.status_code == 200
+        assert block_response.json() == {"ok": True}
+
+        get_user_response = client.get(
+            USER_PREFIX + f"/{second_user_id}",
+            headers={"Authorization": f"Bearer {admin_access_token}"},
+        )
+
+        assert get_user_response.status_code == 200
+        assert get_user_response.json()["is_active"] is False
+
+        response = client.get(
+            "/v1/block",
+            headers={"Authorization": f"Bearer {admin_access_token}"},
+        )
+
+        assert response.status_code == 200
+        assert response.json()[0]["email"] == "francisnaldo@example.ufcg.edu.br"
+
+    def test_get_blocked_users_without_privileges(
+        self, client, setUp, admin_access_token, user_access_token
+    ):
+        data = {
+            "email": "user@ccc.ufcg.edu.br",
+            "password": "senha1234",
+            "cpf": "12345678911",
+            "phone": "83911223344",
+            "occupation": "ALUNO",
+            "full_name": "user",
+        }
+
+        response = client.post(USER_PREFIX + "/signup", json=data)
+
+        assert response.status_code == 200
+
+        get_users_response = client.get(
+            USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
+        )
+
+        assert get_users_response.status_code == 200
+
+        # The third user created is a normal user, and the first one is the admin himself
+        third_user_id = get_users_response.json()[2]["id"]
+
+        block_response = client.patch(
+            f"/v1/block/{third_user_id}",
+            headers={"Authorization": f"Bearer {admin_access_token}"},
+        )
+
+        assert block_response.status_code == 200
+        assert block_response.json() == {"ok": True}
+
+        get_user_response = client.get(
+            USER_PREFIX + f"/{third_user_id}",
+            headers={"Authorization": f"Bearer {admin_access_token}"},
+        )
+
+        assert get_user_response.status_code == 200
+        assert get_user_response.json()["is_active"] is False
+
+        response = client.get(
+            "/v1/block",
+            headers={"Authorization": f"Bearer {user_access_token}"},
+        )
+
+        assert response.status_code == 403
+        assert response.json()["detail"] == "O usuário não tem privilégios suficientes"
+
+        get_user_response = client.get(
+            USER_PREFIX + f"/{third_user_id}",
+            headers={"Authorization": f"Bearer {admin_access_token}"},
+        )
+
+        assert get_user_response.status_code == 200
+        assert get_user_response.json()["is_active"] is False
