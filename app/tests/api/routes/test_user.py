@@ -345,3 +345,52 @@ class TestUserRoutes:
             response_duplicated_cpf.json()["detail"]
             == "Já existe um usuário com esse CPF."
         )
+
+    def test_signup_user_invalid_cpf(self, client):
+        data = {
+            "email": "user@ccc.ufcg.edu.br",
+            "password": "senha1234",
+            "cpf": "123456789123",  # invalid CPF (more than 11 digits)
+            "phone": "83911111111",
+            "occupation": "ALUNO",
+            "full_name": "CPF inválido",
+        }
+
+        response = client.post(USER_PREFIX + "/signup", json=data)
+
+        assert response.status_code == 422  # Validation error
+        response_data = response.json()["detail"]
+
+        assert any(
+            error["loc"] == ["body", "cpf"]
+            and error["msg"] == "String should have at most 11 characters"
+            for error in response_data
+        )
+
+    def test_signup_user_invalid_ocuppation(self, client):
+        data = {
+            "email": "user@ccc.ufcg.edu.br",
+            "password": "senha1234",
+            "cpf": "123456789123",  # invalid CPF (more than 11 digits)
+            "phone": "83911111111",
+            "occupation": "INVALID OCCUPATION",  # invalid occupation
+            "full_name": "CPF inválido",
+        }
+
+        response = client.post(USER_PREFIX + "/signup", json=data)
+
+        assert response.status_code == 422
+
+    def test_signup_user_invalid_phone(self, client):
+        data = {
+            "email": "user@ccc.ufcg.edu.br",
+            "password": "senha1234",
+            "cpf": "123456789123",  # invalid CPF (more than 11 digits)
+            "phone": "83911abc111",
+            "occupation": "INVALID OCCUPATION",  # invalid occupation
+            "full_name": "CPF inválido",
+        }
+
+        response = client.post(USER_PREFIX + "/signup", json=data)
+
+        assert response.status_code == 422
