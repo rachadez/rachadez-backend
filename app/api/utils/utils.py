@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone, time
-from fastapi import security
+from app.core import security
 from jwt.exceptions import InvalidTokenError
 from sqlalchemy.orm import Session
 import jwt
