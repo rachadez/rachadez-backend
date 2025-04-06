@@ -191,6 +191,21 @@ class TestUserRoutes:
 
         assert second_response.status_code == 200
 
+    def test_get_user_by_email_not_exists(self, client, setUp, admin_access_token):
+        get_users_response = client.get(
+            USER_PREFIX + "/", headers={"Authorization": f"Bearer {admin_access_token}"}
+        )
+
+        assert get_users_response.status_code == 200
+
+        response = client.get(
+            USER_PREFIX + "/email/fake_email@example.ufcg.edu.br",
+            headers={"Authorization": f"Bearer {admin_access_token}"},
+        )
+
+        assert response.status_code == 404
+        assert response.json()["detail"] == "Usuário não encontrado."
+
     def test_get_user_by_email_without_privileges(
         self, client, setUp, admin_access_token, user_access_token
     ):
