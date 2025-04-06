@@ -49,7 +49,7 @@ class TestUserRoutes:
         response = client.post(
             "/v1/login/access-token",
             data={
-                "username": "admin@example.ufcg.edu.br",
+                "username": setUp.email,
                 "password": "admin password",
             },
             headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -74,7 +74,7 @@ class TestUserRoutes:
         response = client.post(
             "/v1/login/access-token",
             data={
-                "username": "admin@example.ufcg.edu.br",
+                "username": setUp.email,
                 "password": "senha incorreta",
             },
             headers={"Content-Type": "application/x-www-form-urlencoded"},
