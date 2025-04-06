@@ -15,7 +15,8 @@ install: ## Install dependencies
 
 .PHONY: run
 run: ## Run the application
-	poetry run fastapi run $(APP)
+	docker compose down
+	docker compose up -d --build
 
 .PHONY: run-dev
 run-dev: ## Run the aplication in dev mode
