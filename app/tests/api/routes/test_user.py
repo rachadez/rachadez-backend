@@ -636,3 +636,13 @@ class TestUserRoutes:
 
         assert get_user_response.status_code == 200
         assert get_user_response.json()["is_active"] is True
+
+    def test_block_user_by_id_not_exists(self, client, setUp, admin_access_token):
+        random_uuid = uuid.uuid4()
+        response = client.patch(
+            f"/v1/block/{random_uuid}",
+            headers={"Authorization": f"Bearer {admin_access_token}"},
+        )
+
+        assert response.status_code == 404
+        assert response.json()["detail"] == "Usuário não encontrado."
