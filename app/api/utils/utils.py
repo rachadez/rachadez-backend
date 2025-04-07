@@ -149,11 +149,9 @@ def is_valid_sports_schedule(reservation: Reservation, arena: Arena) -> bool:
     return False
 
 
-def is_reservation_available(session: Session, reservation: Reservation) -> bool:
+def is_reservation_available(session: Session, arena_id: int,end_date: datetime, start_date: datetime ) -> bool:
     
-    arena_id = reservation.arena_id
-    end_date = reservation.end_date
-    start_date = reservation.start_date
+    
 
     existing_reservation = session.query(Reservation).filter(
         Reservation.arena_id == arena_id,  
