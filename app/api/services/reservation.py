@@ -52,7 +52,7 @@ def create_reservation(session: SessionDep, reservation_data: ReservationCreate,
             raise HTTPException(status_code=400, detail="Reserva ilegal, horário ou data não permitido.")
         
         if not user.is_admin:
-            if not is_reservation_available(session):
+            if not is_reservation_available(session, reservation):
                 raise HTTPException(status_code=400, detail="Já existe uma reserva nesse horário.")
             verify_last_reservation(arena, user_owner, reservation.start_date)
             
@@ -141,7 +141,8 @@ def delete_reservation(db: Session, reservation_id: uuid.UUID, user_id: uuid.UUI
     try:
         reservation = db.query(Reservation).filter(Reservation.id == reservation_id).first()
         user_owner = db.query(User).filter(User.id == user_id).first()
-        arena = db.get(Arena, reservation.arena_id)
+        arena_id = reservation.arena_id
+        arena = db.get(Arena, arena_id)
         
         
         if not reservation:
@@ -156,9 +157,9 @@ def delete_reservation(db: Session, reservation_id: uuid.UUID, user_id: uuid.UUI
             raise HTTPException(status_code=400, detail="Não é possível cancelar uma reserva que já iniciou.")
         else:
             if arena.type in ["TÊNIS" , "BEACH_TENNIS"]:
-                user.last_reservation_weekly = None
+                user_owner.last_reservation_weekly = None
             else:
-                user.last_reservation_monthly = None
+                user_owner.last_reservation_monthly = None
                 
         db.add(user)
         db.delete(reservation)
