@@ -161,6 +161,8 @@ def is_reservation_available(session: Session, reservation: Reservation) -> bool
         Reservation.end_date > start_date
     ).first()
 
+    return existing_reservation is None
+
 
 def is_previous_week(date: datetime) -> bool:
     """
