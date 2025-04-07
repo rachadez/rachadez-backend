@@ -71,6 +71,11 @@ make run-dev
 ```bash
     curl http://localhost:8000/docs
 ```
+
+### 4. Rodar os testes:
+```bash
+    make test
+```
 ---
 
 ## 🤝 Como Contribuir
