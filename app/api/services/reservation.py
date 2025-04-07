@@ -52,7 +52,7 @@ def create_reservation(session: SessionDep, reservation_data: ReservationCreate,
             raise HTTPException(status_code=400, detail="Reserva ilegal, horário ou data não permitido.")
         
         if not user.is_admin:
-            if not is_reservation_available(session, reservation):
+            if not is_reservation_available(session, reservation.arena_id, reservation.end_date, reservation.start_date):
                 raise HTTPException(status_code=400, detail="Já existe uma reserva nesse horário.")
             verify_last_reservation(arena, user_owner, reservation.start_date)
             
@@ -115,7 +115,7 @@ def update_reservation(session: Session, reservation_id: int, updated_data: Rese
         raise HTTPException(status_code=400, detail="Horário inválido para este tipo de arena.")
 
     if not user.is_admin:
-        if is_reservation_available(session, reservation):
+        if is_reservation_available(session, reservation.arena_id, reservation.end_date, reservation.start_date):
             raise HTTPException(status_code=400, detail="Este horário já está sendo ocupado por outra reserva.")
     else:
         old_reservation = session.query(Reservation).filter(Reservation.arena_id == reservation.arena_id,
